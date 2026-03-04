@@ -35,7 +35,7 @@ You must add the following environment variable for the frontend to communicate 
 
 | Variable Name | Value Example |
 | :--- | :--- |
-| `REACT_APP_API_URL` | `https://your-backend-app.onrender.com/api` |
+| `REACT_APP_API_URL` | `https://petty-cash-12l2.onrender.com/api` |
 
 To add this:
 1. Scroll down to the **"Environment Variables"** section.
