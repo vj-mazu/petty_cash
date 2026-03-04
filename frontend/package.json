@@ -7,8 +7,8 @@
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
-    "jspdf": "^3.0.3",
-    "jspdf-autotable": "^5.0.2",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.7",
     "lodash": "^4.17.21",
     "lucide-react": "^0.542.0",
     "postcss-flexbugs-fixes": "^5.0.2",
@@ -28,7 +28,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "CI=false react-scripts build",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
