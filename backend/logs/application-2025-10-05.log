@@ -1,0 +1,6 @@
+{"timestamp":"2025-10-05T02:56:26.344Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-05T02:56:26.720Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-05T02:56:27.963Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-05T02:56:28.459Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-05T02:56:28.595Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-05T02:56:28.614Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}

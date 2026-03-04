@@ -1,0 +1,144 @@
+{"timestamp":"2025-10-12T01:25:53.562Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T01:25:53.939Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T01:25:55.413Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T01:25:55.427Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T01:25:56.661Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T01:25:56.671Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T01:25:56.782Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T01:25:56.794Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T01:37:18.580Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T01:37:18.943Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T01:37:21.260Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T01:37:21.280Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T01:37:23.562Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T01:37:23.587Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T01:37:23.655Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T01:37:23.674Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T02:12:37.215Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T02:12:37.450Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T02:12:38.279Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T02:12:38.289Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T02:12:38.862Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T02:12:38.869Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T02:12:38.887Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T02:12:38.891Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T02:33:02.631Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T02:33:02.853Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T02:33:03.695Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T02:33:03.704Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T02:33:04.177Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T02:33:04.182Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T02:33:04.201Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T02:33:04.206Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T04:22:18.217Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T04:22:18.467Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T04:22:20.394Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T04:22:20.408Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T04:22:21.964Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T04:22:21.985Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T04:22:22.031Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T04:22:22.039Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T05:23:25.958Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T05:23:26.443Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T05:23:28.887Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T05:23:28.909Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T05:23:30.827Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T05:23:30.849Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T05:23:30.892Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T05:23:30.899Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T05:46:44.527Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T05:46:44.722Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T05:46:45.913Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T05:46:45.923Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T05:46:45.933Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T05:46:45.939Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T05:46:45.971Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T05:46:45.978Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T05:58:14.185Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T05:58:14.302Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T05:58:14.695Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T05:58:14.770Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T05:58:15.086Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T05:58:16.300Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T05:58:16.318Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T05:58:16.322Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T08:24:30.758Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T08:24:31.033Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T08:24:32.801Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T08:24:32.819Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T08:24:32.833Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T08:24:32.845Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T08:24:32.882Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T08:24:32.889Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T08:27:30.914Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T08:27:31.205Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T08:27:32.924Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T08:27:32.937Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T08:27:32.949Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T08:27:32.957Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T08:27:32.985Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T08:27:32.992Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T09:02:16.663Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T09:02:17.068Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T09:02:19.005Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T09:02:19.021Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:02:19.031Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:02:19.040Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T09:02:19.071Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T09:02:19.077Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T09:03:42.544Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T09:03:42.779Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T09:03:44.445Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T09:03:44.461Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:03:44.474Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:03:44.483Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T09:03:44.531Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T09:03:44.541Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T09:24:07.885Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T09:24:08.097Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T09:24:09.836Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T09:24:09.848Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:24:09.859Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:24:09.869Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T09:24:09.904Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T09:24:09.912Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T09:42:51.416Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T09:42:51.871Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T09:42:54.128Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T09:42:54.140Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:42:54.151Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:42:54.162Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T09:42:54.291Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T09:42:54.302Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T09:47:10.663Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T09:47:11.022Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T09:47:13.213Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T09:47:13.230Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:47:13.245Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T09:47:13.256Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T09:47:13.308Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T09:47:13.316Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T11:27:59.300Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T11:27:59.560Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T11:28:00.883Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T11:28:00.896Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T11:28:00.904Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T11:28:00.911Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T11:28:00.982Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T11:28:00.991Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T11:33:07.847Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T11:33:08.197Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T11:33:10.622Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T11:33:10.637Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T11:33:10.650Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T11:33:10.658Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T11:33:10.694Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T11:33:10.701Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
+{"timestamp":"2025-10-12T11:48:47.691Z","level":"INFO","message":"Starting Cash Management System server..."}
+{"timestamp":"2025-10-12T11:48:48.015Z","level":"INFO","message":"Database connection established successfully"}
+{"timestamp":"2025-10-12T11:48:49.194Z","level":"INFO","message":"Database migrations completed"}
+{"timestamp":"2025-10-12T11:48:49.417Z","level":"INFO","message":"High-level performance optimization completed successfully"}
+{"timestamp":"2025-10-12T11:48:50.790Z","level":"INFO","message":"Ultra performance optimization completed successfully"}
+{"timestamp":"2025-10-12T11:48:53.870Z","level":"INFO","message":"Database auto-setup completed"}
+{"timestamp":"2025-10-12T11:48:53.911Z","level":"INFO","message":"Balance rollover scheduler started"}
+{"timestamp":"2025-10-12T11:48:53.918Z","level":"INFO","message":"Cash Management System started successfully on port 5000","port":"5000","environment":"development","node_version":"v22.17.0","memory_limit":"default"}
