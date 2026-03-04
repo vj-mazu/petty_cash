@@ -2,6 +2,7 @@ services:
   - type: web
     name: petti-cash-backend
     env: node
+    rootDir: backend
     buildCommand: npm install
     startCommand: node start.js
     envVars:
