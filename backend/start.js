@@ -18,8 +18,8 @@ console.log('🚀 Starting Cash Management Backend Setup...\n');
 const runCommand = (command, description) => {
   try {
     console.log(`⏳ ${description}...`);
-    const result = execSync(command, { 
-      stdio: 'pipe', 
+    const result = execSync(command, {
+      stdio: 'pipe',
       encoding: 'utf8',
       cwd: process.cwd()
     });
@@ -51,8 +51,7 @@ const runSetup = async () => {
     console.log('📋 Checking required files...');
     const requiredFiles = [
       'package.json',
-      'server.js',
-      '.env'
+      'server.js'
     ];
 
     for (const file of requiredFiles) {
@@ -121,11 +120,11 @@ const runSetup = async () => {
 
     // Step 6: Start the server
     console.log('🎯 Setup complete! Starting server...\n');
-    console.log('=' .repeat(50));
+    console.log('='.repeat(50));
     console.log('🚀 Cash Management Backend is starting...');
     console.log('📊 Server will be available at: http://localhost:5000');
     console.log('📖 API Documentation: http://localhost:5000/api');
-    console.log('=' .repeat(50));
+    console.log('='.repeat(50));
     console.log('');
 
     // Start the server with proper output streaming
