@@ -59,6 +59,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
+if (process.env.CLIENT_URL) {
+  console.log('✅ CLIENT_URL is present. CORS configured for:', process.env.CLIENT_URL);
+} else {
+  console.warn('⚠️  CLIENT_URL is missing. CORS defaulting to localhost.');
+}
+
 // Rate limiting - DISABLED for unlimited access but ready for production
 // app.use(apiLimiter); // Commented out to allow unlimited requests
 

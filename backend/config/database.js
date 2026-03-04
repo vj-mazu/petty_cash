@@ -77,6 +77,12 @@ const sequelize = process.env.DATABASE_URL
     ...sequelizeOptions
   });
 
+if (process.env.DATABASE_URL) {
+  console.log('✅ DATABASE_URL is present. Using connection string.');
+} else {
+  console.warn('⚠️  DATABASE_URL is missing. Falling back to individual parameters (DB_HOST, etc.).');
+}
+
 console.log('🐘 Using PostgreSQL database');
 
 module.exports = sequelize;
