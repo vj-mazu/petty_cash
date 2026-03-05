@@ -170,7 +170,7 @@ const createTransaction = async (req, res) => {
       }
     }
 
-    console.log('Parsed amounts - Debit:', finalDebit, 'Credit:', finalCredit, 'Anamath:', finalAnamathAmount);
+
 
     // Validate amounts
     const debitError = validateAmount(finalDebit, 'debitAmount');
@@ -192,11 +192,6 @@ const createTransaction = async (req, res) => {
       }
       // Anamath remarks are now optional - backend will use transaction remarks as fallback
     } else { // For 'regular' transactions
-      console.log('--- Debugging Regular Transaction Creation ---');
-      console.log('finalDebit:', finalDebit);
-      console.log('finalCredit:', finalCredit);
-      console.log('transactionType (from req.body):', transactionType);
-      console.log('transactionType (after defaulting):', transactionType || 'regular');
 
       if (finalDebit <= 0 && finalCredit <= 0) {
         validationErrors.push({ field: 'amount', message: 'Transaction must have a positive debit or credit amount.' });
@@ -231,7 +226,7 @@ const createTransaction = async (req, res) => {
       });
       const maxNumber = lastEntry?.maxNumber || 0;
       const nextTransactionNumber = parseInt(maxNumber) + 1;
-      console.log(`🔢 Auto-generated transaction number for anamath: ${nextTransactionNumber}`);
+
 
       // Create the AnamathEntry first with the correct anamath amount and details
       // Smart fallback: Use transaction remarks if anamath remarks is empty
@@ -250,7 +245,7 @@ const createTransaction = async (req, res) => {
         createdBy: req.user.id
       }, { transaction: t });
 
-      console.log('Created anamath entry:', anamathEntry.id, 'Amount:', finalAnamathAmount);
+
 
       // Then create the main transaction and link it to the anamath entry
       const mainTxData = {
@@ -268,7 +263,7 @@ const createTransaction = async (req, res) => {
       };
 
       const mainTx = await Transaction.create(mainTxData, { transaction: t });
-      console.log('Created combined transaction:', mainTx.id, 'Debit:', finalDebit, 'Credit:', finalCredit);
+
 
       if (mainTx.status === 'approved') {
         newBalance += finalCredit - finalDebit;
@@ -411,14 +406,9 @@ const approveTransaction = async (req, res) => {
   }
 };
 
-// Get all transactions - Ultra-fast version with intelligent caching
+// Get all transactions - Optimized for 10M+ records with cursor and offset pagination
 const getAllTransactions = async (req, res) => {
-  const startTime = Date.now();
-
   try {
-    console.log('⚡ Ultra-fast getAllTransactions called with params:', req.query);
-    console.log('🔍 User:', req.user ? req.user.username : 'Not authenticated');
-
     const {
       page = 1,
       limit = 20,
@@ -426,66 +416,42 @@ const getAllTransactions = async (req, res) => {
       startDate,
       endDate,
       search,
-      type, // 'debit' or 'credit'
-      includeSuspended = 'false' // Allow showing suspended transactions
+      type,
+      includeSuspended = 'false',
+      no_count = 'false',
+      cursor // Cursor-based pagination: "date|id" from last row of previous page
     } = req.query;
 
-    // Enforce reasonable limits to prevent memory issues - increased for "Show All" functionality
-    const maxLimit = 50000; // Support up to 50,000 records for "Show All"
-    const parsedLimit = parseInt(limit) || 20; // Default to 20 if NaN
-    const parsedPage = parseInt(page) || 1; // Default to 1 if NaN
-    const actualLimit = Math.min(parsedLimit, maxLimit);
-    const offset = (parsedPage - 1) * actualLimit;
+    const parsedLimit = Math.min(parseInt(limit) || 20, 50);
+    const parsedPage = parseInt(page) || 1;
 
-    console.log(`🔍 Limit params: limit=${limit}, parsedLimit=${parsedLimit}, actualLimit=${actualLimit}, maxLimit=${maxLimit}`);
-
-    // CHECK CACHE FIRST - Ultra-fast response for repeated queries
-    const cacheParams = { page, limit: actualLimit, ledgerId, startDate, endDate, search, type, includeSuspended };
+    // CHECK CACHE FIRST
+    const cacheParams = { page: parsedPage, limit: parsedLimit, ledgerId, startDate, endDate, search, type, includeSuspended, cursor };
     const cached = cacheService.getTransactions(cacheParams);
-
-    if (cached) {
-      const elapsed = Date.now() - startTime;
-      console.log(`⚡ CACHE HIT! Response time: ${elapsed}ms`);
-      return res.json(cached);
-    }
+    if (cached) return res.json(cached);
 
     let whereClause = {};
     let ledgerWhereClause = { isActive: true };
 
-    // Only exclude suspended transactions if not explicitly requested to include them
     if (includeSuspended !== 'true') {
       whereClause.isSuspended = false;
     }
+    if (ledgerId) whereClause.ledgerId = ledgerId;
 
-    // Filter by ledger
-    if (ledgerId) {
-      whereClause.ledgerId = ledgerId;
-      console.log('🔍 Filtering by ledgerId:', ledgerId);
-    }
-
-    // Filter by date range - Use indexed columns for better performance
+    // Date range filters
     if (startDate && endDate) {
-      whereClause.date = {
-        [Op.between]: [startDate, endDate]
-      };
+      whereClause.date = { [Op.between]: [startDate, endDate] };
     } else if (startDate) {
-      whereClause.date = {
-        [Op.gte]: startDate
-      };
+      whereClause.date = { [Op.gte]: startDate };
     } else if (endDate) {
-      whereClause.date = {
-        [Op.lte]: endDate
-      };
+      whereClause.date = { [Op.lte]: endDate };
     }
 
-    // Filter by transaction type - Use indexed amount columns
-    if (type === 'debit') {
-      whereClause.debitAmount = { [Op.gt]: 0 };
-    } else if (type === 'credit') {
-      whereClause.creditAmount = { [Op.gt]: 0 };
-    }
+    // Transaction type filter
+    if (type === 'debit') whereClause.debitAmount = { [Op.gt]: 0 };
+    else if (type === 'credit') whereClause.creditAmount = { [Op.gt]: 0 };
 
-    // Search optimization - Use full-text search if available, otherwise ILIKE
+    // Search
     if (search) {
       const searchTerm = search.toLowerCase();
       whereClause[Op.or] = [
@@ -498,31 +464,30 @@ const getAllTransactions = async (req, res) => {
       ];
     }
 
-    // Validate ledger exists if ledgerId is provided
-    if (ledgerId) {
-      const ledgerExists = await Ledger.findByPk(ledgerId, { attributes: ['id', 'name', 'isActive'] });
-      if (!ledgerExists) {
-        console.log('❌ Ledger not found:', ledgerId);
-        return res.status(404).json({
-          success: false,
-          message: 'Ledger not found'
-        });
+    // CURSOR-BASED PAGINATION: O(1) at any depth, parameterized for security
+    if (cursor) {
+      const [cursorDate, cursorId] = cursor.split('|');
+      if (cursorDate && cursorId) {
+        // Safe keyset condition using Sequelize operators (no raw SQL)
+        whereClause[Op.and] = [
+          ...(whereClause[Op.and] || []),
+          {
+            [Op.or]: [
+              { date: { [Op.lt]: cursorDate } },
+              {
+                [Op.and]: [
+                  { date: cursorDate },
+                  { id: { [Op.lt]: cursorId } }
+                ]
+              }
+            ]
+          }
+        ];
       }
-      if (!ledgerExists.isActive) {
-        console.log('❌ Ledger is inactive:', ledgerId);
-        return res.status(403).json({
-          success: false,
-          message: 'Ledger is inactive'
-        });
-      }
-      console.log('✅ Ledger found:', ledgerExists.name);
     }
 
-    // --- SAFE Transaction Query with ORM Only ---
-    console.log('🔍 Executing optimized queries...');
-
-    // Use ONLY Sequelize ORM - NO RAW SQL to prevent parameter binding issues
-    const transactionResult = await Transaction.findAndCountAll({
+    // Query
+    const transactions = await Transaction.findAll({
       where: whereClause,
       include: [
         {
@@ -544,31 +509,50 @@ const getAllTransactions = async (req, res) => {
         'reference', 'transactionNumber', 'isSuspended', 'ledgerId',
         'createdAt', 'updatedAt', 'remarks', 'transactionType'
       ],
-      limit: actualLimit,
-      offset: offset,
+      limit: parsedLimit,
+      offset: cursor ? 0 : (parsedPage - 1) * parsedLimit, // No offset when using cursor
       order: [['date', 'DESC'], ['createdAt', 'DESC']],
       raw: false,
-      logging: false // Disable SQL logging to reduce noise
+      logging: false
     });
 
-    const { count, rows: transactions } = transactionResult;
-    console.log('✅ Found', count, 'transactions, returning', transactions.length, 'for page', page);
+    // Fast count: use pg_class approximate count on first page, skip on others
+    let count = 0;
+    if (parsedPage === 1 && !cursor && no_count !== 'true') {
+      try {
+        // Fast approximate count from PostgreSQL statistics (~95% accurate)
+        const [countResult] = await sequelize.query(
+          `SELECT reltuples::bigint AS approx FROM pg_class WHERE relname = 'transactions'`
+        );
+        count = parseInt(countResult[0]?.approx) || 0;
+        // If approximate count is small, get exact count
+        if (count < 10000) {
+          count = await Transaction.count({
+            where: whereClause,
+            include: [{ model: Ledger, as: 'ledger', where: ledgerWhereClause, required: true }]
+          });
+        }
+      } catch {
+        count = await Transaction.count({
+          where: whereClause,
+          include: [{ model: Ledger, as: 'ledger', where: ledgerWhereClause, required: true }]
+        });
+      }
+    } else if (no_count !== 'true' && !cursor) {
+      count = transactions.length < parsedLimit
+        ? (parsedPage - 1) * parsedLimit + transactions.length
+        : (parsedPage - 1) * parsedLimit + parsedLimit + 1;
+    }
 
-    // Simple summary calculation
-    let summary = {
-      openingBalance: 0,
-      closingBalance: 0,
-      totalDebit: 0,
-      totalCredit: 0,
-      netChange: 0,
-    };
+    // Build cursor for next page
+    const lastRow = transactions[transactions.length - 1];
+    const nextCursor = lastRow ? `${lastRow.date}|${lastRow.id}` : null;
+    const hasMore = transactions.length === parsedLimit;
 
-    // Calculate totals for current page only (safe calculation)
-    const pageTotals = transactions.reduce((acc, transaction) => {
-      const debit = parseFloat(transaction.debitAmount || 0);
-      const credit = parseFloat(transaction.creditAmount || 0);
-      acc.totalDebit += debit;
-      acc.totalCredit += credit;
+    // Page totals
+    const pageTotals = transactions.reduce((acc, t) => {
+      acc.totalDebit += parseFloat(t.debitAmount || 0);
+      acc.totalCredit += parseFloat(t.creditAmount || 0);
       return acc;
     }, { totalDebit: 0, totalCredit: 0 });
 
@@ -577,29 +561,23 @@ const getAllTransactions = async (req, res) => {
       data: {
         transactions,
         totals: pageTotals,
-        summary,
+        summary: { openingBalance: 0, closingBalance: 0, totalDebit: 0, totalCredit: 0, netChange: 0 },
         pagination: {
           total: count,
-          page: parseInt(page),
-          pages: Math.ceil(count / actualLimit),
-          limit: actualLimit,
-          unlimited: true // No limit - unlimited records
+          page: parsedPage,
+          pages: count > 0 ? Math.ceil(count / parsedLimit) : 1,
+          limit: parsedLimit,
+          nextCursor, // For cursor-based pagination
+          hasMore     // Whether there are more rows after this page
         }
       }
     };
 
-    // CACHE THE RESULT for ultra-fast subsequent requests
     cacheService.setTransactions(cacheParams, responseData);
-
-    const elapsed = Date.now() - startTime;
-    console.log(`✅ Response time: ${elapsed}ms (${count} total records)`);
-
     res.json(responseData);
+
   } catch (error) {
-    console.error('❌ Get transactions error:', error);
-    console.error('❌ Error stack:', error.stack);
-    console.error('❌ Query params:', req.query);
-    console.error('❌ User:', req.user ? req.user.username : 'Not authenticated');
+    console.error('Get transactions error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch transactions',
@@ -666,17 +644,6 @@ const updateTransaction = async (req, res) => {
   try {
     const { id } = req.params;
     const { reference, debitAmount, creditAmount, date, ledgerId, remarks } = req.body;
-
-    console.log('DEBUG: Update transaction received payload:', req.body);
-    console.log('DEBUG: Extracted values:', {
-      id,
-      reference,
-      debitAmount,
-      creditAmount,
-      date,
-      ledgerId,
-      remarks
-    });
 
     // Enhanced validation with detailed error messages
     const validationErrors = [];
@@ -844,12 +811,6 @@ const updateTransaction = async (req, res) => {
 
     // CRITICAL FIX: Update linked Anamath entry if this is a Credit+Anamath transaction
     if (transaction.combinedWithAnamathId && date !== undefined) {
-      console.log('🔄 Updating linked Anamath entry date:', {
-        anamathId: transaction.combinedWithAnamathId,
-        oldDate: transaction.date,
-        newDate: date
-      });
-
       const { AnamathEntry } = require('../models');
       const linkedAnamath = await AnamathEntry.findByPk(transaction.combinedWithAnamathId, { transaction: t });
 
@@ -860,7 +821,7 @@ const updateTransaction = async (req, res) => {
           updatedAt: new Date()
         }, { transaction: t });
 
-        console.log('✅ Linked Anamath entry date updated successfully');
+
       } else {
         console.warn('⚠️ Linked Anamath entry not found:', transaction.combinedWithAnamathId);
       }
@@ -877,17 +838,6 @@ const updateTransaction = async (req, res) => {
     const editDate = dateChanged ? newDateString : oldDateString;
 
     if (dateChanged || amountsChanged) {
-      console.log('Transaction edit detected changes that affect balances:', {
-        dateChanged,
-        amountsChanged,
-        oldDate: oldDateString,
-        newDate: newDateString,
-        editDate: editDate,
-        oldDebit: oldTransactionData.debitAmount,
-        newDebit: finalDebit,
-        oldCredit: oldTransactionData.creditAmount,
-        newCredit: finalCredit
-      });
 
       // Determine the earliest date that needs recalculation
       // If date was moved back, we need to recalculate from that earlier date
@@ -896,7 +846,7 @@ const updateTransaction = async (req, res) => {
         ? newDateString
         : oldDateString;
 
-      console.log(`Triggering balance recalculation from date: ${earliestDate}`);
+
       recalculationTriggered = true;
     }
 
@@ -920,17 +870,14 @@ const updateTransaction = async (req, res) => {
           ? newDateString
           : oldDateString;
 
-        console.log(`Starting balance recalculation from ${earliestDate} due to transaction edit`);
+
         await balanceRecalculationService.recalculateFromDate(earliestDate, oldLedger.id, req.user.id);
         // If the ledger was changed, we also need to recalculate for the new ledger
         if (ledgerId && ledgerId !== oldLedger.id) {
           await balanceRecalculationService.recalculateFromDate(earliestDate, ledgerId, req.user.id);
         }
-        console.log('Balance recalculation completed successfully');
-
         // Also trigger daily balance continuity recalculation
         await dailyBalanceService.recalculateBalancesFromDate(earliestDate);
-        console.log('Daily balance continuity recalculation completed');
       } catch (recalcError) {
         console.error('Balance recalculation failed after transaction edit:', recalcError);
         // Don't fail the transaction update, but log the error
@@ -1017,9 +964,6 @@ const updateTransaction = async (req, res) => {
 
 // Delete transaction
 const deleteTransaction = async (req, res) => {
-  console.log('Delete transaction called with ID:', req.params.id);
-  console.log('User role:', req.user?.role);
-  console.log('User ID:', req.user?.id);
 
   const t = await sequelize.transaction();
 
@@ -1096,7 +1040,6 @@ const deleteTransaction = async (req, res) => {
 
     // Allow deletion with warning - removed restrictive balance validation
     // In a cash management system, temporary negative balances may be acceptable
-    console.log(`Transaction deletion will change balance from ₹${ledger.currentBalance} to ₹${newLedgerBalance.toFixed(2)}`);
 
     // Optional: Add a warning log for significant negative balances
     if (newLedgerBalance < -100000) {
@@ -1125,9 +1068,7 @@ const deleteTransaction = async (req, res) => {
 
     // Trigger balance recalculation from the date of the deleted transaction
     try {
-      console.log(`Starting balance recalculation from ${deletedTransactionDate} due to transaction deletion`);
       await balanceRecalculationService.recalculateFromDate(deletedTransactionDate, transaction.ledger.id, req.user.id);
-      console.log('Balance recalculation completed successfully after deletion');
     } catch (recalcError) {
       console.error('Balance recalculation failed after transaction deletion:', recalcError);
       // Don't fail the delete operation, but log the error

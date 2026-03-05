@@ -2,6 +2,8 @@
 node_modules/
 .pnp
 .pnp.js
+logs/
+*.log
 
 # testing
 coverage/
@@ -26,3 +28,7 @@ yarn-error.log*
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Exclude .md and .bat files
+*.md
+*.bat

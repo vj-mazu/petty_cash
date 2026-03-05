@@ -65,7 +65,6 @@ const LedgerTransactionDetails: React.FC<LedgerTransactionDetailsProps> = ({
   const fetchTransactions = async (pageNum = 1, loadAll = false) => {
     setLoading(true);
     setSelectedTransaction(null); // Clear selected transaction when changing view
-    console.log(`🔍 Fetching transactions: pageNum=${pageNum}, loadAll=${loadAll}, limit=${loadAll ? 10000 : 20}`);
 
     try {
       const response = await transactionApi.getAll({
@@ -75,8 +74,6 @@ const LedgerTransactionDetails: React.FC<LedgerTransactionDetailsProps> = ({
         includeSuspended: 'true' // Always include suspended transactions in ledger view
       });
 
-      console.log(`✅ Response received:`, response);
-      console.log(`📊 Transactions count:`, response.data?.transactions?.length || 0);
 
       if (response.success && response.data) {
         setTransactions(response.data.transactions || []);
@@ -84,19 +81,15 @@ const LedgerTransactionDetails: React.FC<LedgerTransactionDetailsProps> = ({
         setTotalRecords(response.data.pagination?.total || response.data.transactions?.length || 0);
         setPage(pageNum);
         setShowAll(loadAll);
-        console.log(`✅ Transactions set successfully: ${response.data.transactions?.length || 0} records`);
 
         // Show success message when loading all records
         if (loadAll && response.data.transactions?.length > 0) {
           toast.success(`Loaded all ${response.data.transactions.length} transactions`);
         }
       } else {
-        console.error('❌ Response not successful:', response);
         toast.error('Failed to load transactions');
       }
     } catch (error: any) {
-      console.error('❌ Error fetching transactions:', error);
-      console.error('❌ Error details:', error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Failed to load transactions');
     } finally {
       setLoading(false);
@@ -174,7 +167,8 @@ const LedgerTransactionDetails: React.FC<LedgerTransactionDetailsProps> = ({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden"
+          className="bg-white rounded-xl shadow-2xl w-full max-h-[95vh] overflow-hidden"
+          style={{ position: 'absolute', inset: '16px' }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Compact Header */}
@@ -222,7 +216,7 @@ const LedgerTransactionDetails: React.FC<LedgerTransactionDetailsProps> = ({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-auto p-6" style={{ maxHeight: 'calc(90vh - 120px)' }}>
+          <div className="flex-1 overflow-auto p-4" style={{ maxHeight: 'calc(95vh - 100px)' }}>
             {loading ? (
               <LoadingSpinner message="Loading transactions..." />
             ) : (

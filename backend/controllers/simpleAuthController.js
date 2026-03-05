@@ -22,11 +22,11 @@ const generateToken = (userData) => {
 const simpleLogin = async (req, res) => {
   try {
     const { username, password, email } = req.body;
-    
+
     // Accept either username or email field
     const loginIdentifier = username || email;
 
-    console.log('Simple login attempt:', { loginIdentifier });
+
 
     // First try to find user in database
     const user = await User.findOne({
@@ -57,7 +57,7 @@ const simpleLogin = async (req, res) => {
 
         const token = generateToken(userData);
 
-        console.log('Simple login successful for:', loginIdentifier);
+
 
         return res.json({
           success: true,
@@ -84,7 +84,7 @@ const simpleLogin = async (req, res) => {
 
         const token = generateToken(userData);
 
-        console.log('Simple login successful for hardcoded admin:', loginIdentifier);
+
 
         return res.json({
           success: true,
@@ -153,7 +153,7 @@ const verifySimpleToken = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Set user data in request
     req.user = decoded;
     next();

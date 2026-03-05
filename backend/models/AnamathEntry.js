@@ -103,17 +103,7 @@ const AnamathEntry = sequelize.define('AnamathEntry', {
 // Instance methods
 AnamathEntry.prototype.toJSON = function () {
   const values = { ...this.get() };
-  // Format amount for display
-  if (values.amount) {
-    values.formattedAmount = parseFloat(values.amount).toLocaleString('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    });
-  }
-
-  // Anamath entries only need their referenceNumber (A001, A002, etc.)
-  // No transaction number formatting needed
-
+  // Note: Amount formatting removed — frontend handles this via formatIndianCurrency()
   return values;
 };
 
@@ -179,5 +169,21 @@ AnamathEntry.getTotalByDateRange = async function (startDate, endDate, ledgerId 
     totalEntries: parseInt(result.totalEntries) || 0
   };
 };
+
+// Hooks — Use PostgreSQL SEQUENCE for O(1) numbering
+AnamathEntry.beforeCreate(async (entry) => {
+  if (!entry.transactionNumber) {
+    try {
+      const [result] = await sequelize.query(
+        `SELECT nextval('anamath_number_seq') as next_num`
+      );
+      entry.transactionNumber = parseInt(result[0].next_num);
+    } catch (error) {
+      // Fallback to MAX() if sequence doesn't exist yet (pre-migration)
+      const maxNum = await AnamathEntry.max('transactionNumber');
+      entry.transactionNumber = (maxNum || 0) + 1;
+    }
+  }
+});
 
 module.exports = AnamathEntry;

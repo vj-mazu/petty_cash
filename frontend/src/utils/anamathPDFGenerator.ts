@@ -133,8 +133,8 @@ export const generateAnamathPDF = (
       startY: y,
       theme: 'grid',
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 7,
+        cellPadding: 1.5,
         lineColor: [180, 180, 180],
         lineWidth: 0.3,
         overflow: 'linebreak',
@@ -146,20 +146,19 @@ export const generateAnamathPDF = (
         textColor: [30, 30, 30],
         fontStyle: 'bold',
         halign: 'center',
-        fontSize: 7.5,
-        cellPadding: 2.5
+        fontSize: 7,
+        cellPadding: 2
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 10 },
-        1: { halign: 'center', cellWidth: 24 },
-        2: { halign: 'center', cellWidth: 16 },
-        3: { halign: 'left', cellWidth: 40 },
-        4: { halign: 'right', cellWidth: 28 },
+        1: { halign: 'center', cellWidth: 22 },
+        2: { halign: 'center', cellWidth: 14 },
+        3: { halign: 'left', cellWidth: 38 },
+        4: { halign: 'right', cellWidth: 26 },
         5: { halign: 'left' }
       },
       alternateRowStyles: { fillColor: [250, 250, 255] },
       didParseCell: (data: any) => {
-        // Amount in green
         if (data.section === 'body' && data.column.index === 4) {
           data.cell.styles.textColor = [22, 163, 74];
           data.cell.styles.fontStyle = 'bold';

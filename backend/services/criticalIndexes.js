@@ -1,99 +1,100 @@
 /**
- * Critical Performance Indexes Service
- * Applies essential indexes for fast transaction queries
- * Runs automatically on server startup
+ * Advanced Critical Indexes for 10M+ Records
+ * These covering indexes eliminate the need for PostgreSQL to combine multiple indexes
  */
 
 const sequelize = require('../config/database');
 
-/**
- * Apply critical indexes for transaction performance
- * These indexes dramatically improve query speed (10-15s → <500ms)
- */
 async function applyCriticalIndexes() {
   try {
-    console.log('📊 Checking critical performance indexes...');
-
-    // Check if indexes already exist
+    // Check if advanced indexes already exist
     const [existingIndexes] = await sequelize.query(`
       SELECT indexname 
       FROM pg_indexes 
       WHERE schemaname = 'public' 
-      AND tablename = 'transactions'
-      AND indexname LIKE 'idx_critical_%'
+      AND indexname LIKE 'idx_critical_%' OR indexname LIKE 'idx_10m_%'
     `);
 
-    if (existingIndexes.length >= 3) {
-      console.log('✅ Critical indexes already exist. Skipping...');
-      return { success: true, message: 'Indexes already applied', created: 0 };
-    }
-
-    console.log('⚡ Creating critical performance indexes...');
+    const existingNames = existingIndexes.map(i => i.indexname);
     let created = 0;
 
-    // Index 1: Date-based queries (most common)
-    try {
-      await sequelize.query(`
-        CREATE INDEX IF NOT EXISTS idx_critical_transactions_date 
-        ON transactions(date DESC, "createdAt" DESC) 
-        WHERE is_suspended = false
-      `);
-      console.log('   ✅ Date index created');
-      created++;
-    } catch (err) {
-      console.warn('   ⚠️  Date index:', err.message);
+    const indexes = [
+      // Core date-based pagination index (partial — excludes suspended)
+      {
+        name: 'idx_critical_transactions_date',
+        sql: `CREATE INDEX IF NOT EXISTS idx_critical_transactions_date 
+              ON transactions(date DESC, "createdAt" DESC) 
+              WHERE is_suspended = false`
+      },
+      // Ledger + date composite (for ledger-filtered views)
+      {
+        name: 'idx_critical_transactions_ledger',
+        sql: `CREATE INDEX IF NOT EXISTS idx_critical_transactions_ledger 
+              ON transactions("ledgerId", date DESC) 
+              WHERE is_suspended = false`
+      },
+      // Transaction number lookup
+      {
+        name: 'idx_critical_transactions_number',
+        sql: `CREATE INDEX IF NOT EXISTS idx_critical_transactions_number 
+              ON transactions(transaction_number DESC) 
+              WHERE transaction_number IS NOT NULL`
+      },
+      // *** 10M-SCALE INDEXES ***
+      // Covering index for cursor-based pagination (THE most critical index)
+      {
+        name: 'idx_10m_cursor_pagination',
+        sql: `CREATE INDEX IF NOT EXISTS idx_10m_cursor_pagination 
+              ON transactions(date DESC, id DESC) 
+              WHERE is_suspended = false`
+      },
+      // Covering index for ledger-scoped cursor pagination
+      {
+        name: 'idx_10m_ledger_cursor',
+        sql: `CREATE INDEX IF NOT EXISTS idx_10m_ledger_cursor 
+              ON transactions("ledgerId", date DESC, id DESC) 
+              WHERE is_suspended = false`
+      },
+      // Anamath entries — date-based index
+      {
+        name: 'idx_10m_anamath_date',
+        sql: `CREATE INDEX IF NOT EXISTS idx_10m_anamath_date 
+              ON anamath_entries(date DESC, id DESC) 
+              WHERE is_closed = false`
+      }
+    ];
+
+    for (const idx of indexes) {
+      if (!existingNames.includes(idx.name)) {
+        try {
+          await sequelize.query(idx.sql);
+          created++;
+        } catch (err) {
+          // Index might already exist under Sequelize's auto-naming
+          if (!err.message.includes('already exists')) {
+            console.warn(`   Index ${idx.name}:`, err.message);
+          }
+        }
+      }
     }
 
-    // Index 2: Ledger + Date composite (filtered queries)
-    try {
-      await sequelize.query(`
-        CREATE INDEX IF NOT EXISTS idx_critical_transactions_ledger 
-        ON transactions("ledgerId", date DESC) 
-        WHERE is_suspended = false
-      `);
-      console.log('   ✅ Ledger index created');
-      created++;
-    } catch (err) {
-      console.warn('   ⚠️  Ledger index:', err.message);
-    }
-
-    // Index 3: Transaction number (quick lookup)
-    try {
-      await sequelize.query(`
-        CREATE INDEX IF NOT EXISTS idx_critical_transactions_number 
-        ON transactions(transaction_number DESC) 
-        WHERE transaction_number IS NOT NULL
-      `);
-      console.log('   ✅ Transaction number index created');
-      created++;
-    } catch (err) {
-      console.warn('   ⚠️  Transaction number index:', err.message);
-    }
-
-    // Update statistics for query planner
+    // Update query planner statistics
     try {
       await sequelize.query('ANALYZE transactions');
-      console.log('   ✅ Statistics updated');
+      await sequelize.query('ANALYZE anamath_entries');
     } catch (err) {
-      console.warn('   ⚠️  Statistics update:', err.message);
+      // Non-critical
     }
 
-    console.log(`✅ Created ${created} critical indexes`);
-    console.log('⚡ Expected improvement: 20-40x faster queries');
-    
-    return { 
-      success: true, 
-      message: 'Critical indexes applied successfully', 
-      created 
-    };
+    if (created > 0) {
+      console.log(`✅ Created ${created} performance indexes for 10M-scale`);
+    }
+
+    return { success: true, created };
 
   } catch (error) {
-    console.error('❌ Failed to apply critical indexes:', error.message);
-    return { 
-      success: false, 
-      message: error.message, 
-      created: 0 
-    };
+    console.error('Index creation failed:', error.message);
+    return { success: false, error: error.message, created: 0 };
   }
 }
 

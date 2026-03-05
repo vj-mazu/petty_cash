@@ -12,7 +12,7 @@ const balanceScheduler = require('./services/balanceScheduler'); // Import balan
 const performanceCache = require('./services/performanceCache'); // Import performance cache
 const systemMonitor = require('./services/systemMonitor'); // Import system monitor
 const logger = require('./services/logger'); // Import logger
-// const { apiLimiter } = require('./middleware/rateLimiting'); // Disabled for unlimited access
+const { apiLimiter } = require('./middleware/rateLimiting');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -65,7 +65,6 @@ app.use(cors({
     if (allowedOrigins.indexOf(normalizedOrigin) !== -1 || allowedOrigins.includes('*')) {
       callback(null, true);
     } else {
-      console.log('CORS blocked for origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -75,14 +74,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-if (process.env.CLIENT_URL) {
-  console.log('✅ CLIENT_URL is present. CORS configured for:', process.env.CLIENT_URL);
-} else {
-  console.warn('⚠️  CLIENT_URL is missing. CORS defaulting to localhost.');
-}
 
-// Rate limiting - DISABLED for unlimited access but ready for production
-// app.use(apiLimiter); // Commented out to allow unlimited requests
+
+// Rate limiting — 200 requests per minute per IP
+app.use('/api', apiLimiter);
 
 // Optimized logging
 if (process.env.NODE_ENV === 'production') {
@@ -107,11 +102,15 @@ app.use(express.urlencoded({
 // Disable x-powered-by header for security
 app.disable('x-powered-by');
 
-// Set security headers
+// Set security headers and response time tracking
 app.use((req, res, next) => {
+  const start = Date.now();
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.on('finish', () => {
+    res.setHeader('X-Response-Time', `${Date.now() - start}ms`);
+  });
   next();
 });
 
@@ -119,27 +118,35 @@ app.use((req, res, next) => {
 // HEALTH CHECK AND MONITORING
 // =====================================
 
-// Enhanced health check endpoint
-app.get('/health', (req, res) => {
+// Enhanced health check with DB ping
+app.get('/health', async (req, res) => {
+  const start = Date.now();
+  let dbStatus = { connected: false, latencyMs: 0 };
+
+  try {
+    await sequelize.query('SELECT 1');
+    dbStatus = { connected: true, latencyMs: Date.now() - start };
+  } catch (err) {
+    dbStatus = { connected: false, error: err.message };
+  }
+
+  const mem = process.memoryUsage();
   const healthData = {
-    success: true,
-    message: 'Server is running optimally',
+    success: dbStatus.connected,
+    status: dbStatus.connected ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     uptime: Math.floor(process.uptime()),
+    database: dbStatus,
     memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+      rss: `${Math.round(mem.rss / 1024 / 1024)}MB`,
+      heapUsed: `${Math.round(mem.heapUsed / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(mem.heapTotal / 1024 / 1024)}MB`
     },
-    cache_stats: performanceCache.getCacheStats(),
-    database_pool: {
-      total: sequelize.connectionManager.pool.size,
-      used: sequelize.connectionManager.pool.used,
-      waiting: sequelize.connectionManager.pool.pending
-    }
+    cache: performanceCache.getCacheStats()
   };
 
-  res.json(healthData);
+  res.status(dbStatus.connected ? 200 : 503).json(healthData);
 });
 
 // Performance monitoring endpoint
@@ -182,21 +189,12 @@ app.get('/api/admin/logs', async (req, res) => {
   }
 });
 
-// Simple test endpoint for login verification
-app.get('/api/test-login', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Login endpoint is accessible',
-    endpoints: {
-      login: 'POST /api/auth/login',
-      credentials: {
-        admin1: 'admin123',
-        admin2: 'admin123',
-        admin3: 'admin123',
-        staff: 'staff123'
-      }
-    }
-  });
+// API response caching headers for GET requests
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.setHeader('Cache-Control', 'private, max-age=30');
+  }
+  next();
 });
 
 // API routes
@@ -386,6 +384,14 @@ const startServer = async () => {
       logger.warn('Critical indexes failed', { error: error.message });
     }
 
+    // PostgreSQL SEQUENCES for O(1) transaction numbering at 10M+ scale
+    try {
+      const { addSequences } = require('./migrations/add-sequences');
+      await addSequences();
+    } catch (error) {
+      console.warn('⚠️  Sequence migration skipped:', error.message);
+    }
+
     // HIGH-LEVEL PERFORMANCE OPTIMIZATION - Database Indexing & Vectorization
     console.log('🚀 Applying High-Level Performance Optimizations...');
     try {
@@ -431,6 +437,18 @@ const startServer = async () => {
       logger.error('Failed to start balance scheduler', schedulerError);
       console.error('⚠️  Failed to start balance scheduler:', schedulerError.message);
       console.log('🟨 Server will continue without automatic balance rollover');
+    }
+
+    // Pre-warm cache so first request after startup is fast
+    try {
+      const { Ledger, Transaction } = require('./models');
+      const ledgers = await Ledger.findAll({ where: { isActive: true }, attributes: ['id', 'name', 'ledgerType'] });
+      performanceCache.set('warm_ledgers', ledgers, 300);
+      const txCount = await Transaction.count({ where: { isSuspended: false } });
+      performanceCache.set('warm_txcount', txCount, 60);
+      logger.info(`Cache warmed: ${ledgers.length} ledgers, ~${txCount} transactions`);
+    } catch (warmErr) {
+      logger.warn('Cache warm-up failed (non-critical):', warmErr.message);
     }
 
     // Start server (bind to all interfaces for LAN access)

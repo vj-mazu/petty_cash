@@ -12,9 +12,9 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
   validateStatus: function (status) {
-    return (status >= 200 && status < 300) || status === 304; // Resolve only if the status code is less than 300 or is 304
+    return (status >= 200 && status < 300) || status === 304;
   },
 });
 
@@ -321,7 +321,6 @@ export const transactionApi = {
       delete defaultParams.txNumber;
     }
 
-    console.log('Transaction API getAll called with params:', defaultParams);
     const response = await api.get('/transactions', { params: defaultParams });
     return response.data as PaginatedResponse<Transaction> & { data: { totals: { totalDebit: number; totalCredit: number } } };
   },

@@ -39,6 +39,11 @@ export interface TransactionPDFOptions {
   includeRunningBalance?: boolean;
   includeCreatedBy?: boolean;
   separateCreditDebit?: boolean;
+  dailyTotals?: {
+    credit: number;
+    debit: number;
+    closing: number;
+  };
 }
 
 /**
@@ -156,8 +161,8 @@ export const generateTransactionPDF = (
       startY: y,
       theme: 'grid',
       styles: {
-        fontSize: 8,
-        cellPadding: 2,
+        fontSize: 7,
+        cellPadding: 1.5,
         lineColor: [180, 180, 180],
         lineWidth: 0.3,
         overflow: 'linebreak',
@@ -169,16 +174,16 @@ export const generateTransactionPDF = (
         textColor: [30, 30, 30],
         fontStyle: 'bold',
         halign: 'center',
-        fontSize: 7.5,
-        cellPadding: 2.5
+        fontSize: 7,
+        cellPadding: 2
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 10 },
         1: { halign: 'center', cellWidth: 22 },
         2: { halign: 'center', cellWidth: 14 },
         3: { halign: 'center', cellWidth: 14 },
-        4: { halign: 'right', cellWidth: 28 },
-        5: { halign: 'left', cellWidth: 35 },
+        4: { halign: 'right', cellWidth: 26 },
+        5: { halign: 'left', cellWidth: 36 },
         6: { halign: 'left' }
       },
       alternateRowStyles: { fillColor: [250, 250, 255] },
@@ -205,7 +210,41 @@ export const generateTransactionPDF = (
       margin: { left: 10, right: 10 }
     });
 
-    // NO SUMMARY — clean PDF, just the table
+    // === DAILY TOTALS FOOTER (matches frontend DAILY TOTALS bar) ===
+    if (options.dailyTotals) {
+      const finalY = (doc as any).lastAutoTable?.finalY || y + 20;
+      const totals = options.dailyTotals;
+      const footerY = finalY + 2;
+
+      // Dark background bar
+      doc.setFillColor(31, 41, 55); // gray-800
+      doc.rect(10, footerY, pw - 20, 8, 'F');
+
+      // DAILY TOTALS label
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('DAILY TOTALS:', 14, footerY + 5.5);
+
+      // CREDIT badge (green)
+      const creditText = `CREDIT: ${fmtAmt(totals.credit)}`;
+      doc.setFillColor(22, 163, 74); // green-600
+      doc.roundedRect(70, footerY + 1, 42, 6, 1, 1, 'F');
+      doc.setFontSize(7);
+      doc.text(creditText, 91, footerY + 5, { align: 'center' });
+
+      // DEBIT badge (red)
+      const debitText = `DEBIT: ${fmtAmt(totals.debit)}`;
+      doc.setFillColor(220, 38, 38); // red-600
+      doc.roundedRect(115, footerY + 1, 38, 6, 1, 1, 'F');
+      doc.text(debitText, 134, footerY + 5, { align: 'center' });
+
+      // CLOSING badge (gray)
+      const closingText = `CLOSING: ${fmtAmt(totals.closing)}`;
+      doc.setFillColor(75, 85, 99); // gray-600
+      doc.roundedRect(156, footerY + 1, 42, 6, 1, 1, 'F');
+      doc.text(closingText, 177, footerY + 5, { align: 'center' });
+    }
 
     const ts = new Date().toISOString().slice(0, 16).replace(/:/g, '-');
     doc.save(`Transactions_${ts}.pdf`);

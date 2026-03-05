@@ -10,7 +10,7 @@ const { Op, QueryTypes } = require('sequelize');
  */
 const getUltraFastTransactions = async (req, res) => {
   const startTime = Date.now();
-  
+
   try {
     const {
       page = 1,
@@ -29,9 +29,7 @@ const getUltraFastTransactions = async (req, res) => {
     const parsedPage = Math.max(parseInt(page) || 1, 1);
     const offset = (parsedPage - 1) * parsedLimit;
 
-    console.log(`⚡ Ultra-fast query - Page: ${parsedPage}, Limit: ${parsedLimit}, Filters:`, {
-      ledgerId, startDate, endDate, search, type, includeSuspended
-    });
+
 
     // Build WHERE clause dynamically
     const conditions = [];
@@ -99,7 +97,7 @@ const getUltraFastTransactions = async (req, res) => {
       type: QueryTypes.SELECT
     });
     const totalCount = parseInt(countResult.total);
-    console.log(`⚡ Count query: ${Date.now() - countStart}ms - Found ${totalCount} transactions`);
+
 
     // OPTIMIZED DATA QUERY - Use covering index and minimal joins
     const dataQuery = `
@@ -138,7 +136,7 @@ const getUltraFastTransactions = async (req, res) => {
       replacements,
       type: QueryTypes.SELECT
     });
-    console.log(`⚡ Data query: ${Date.now() - dataStart}ms - Retrieved ${rawTransactions.length} rows`);
+
 
     // Transform to expected format
     const transactions = rawTransactions.map(tx => ({
@@ -173,10 +171,10 @@ const getUltraFastTransactions = async (req, res) => {
       acc.totalCredit += tx.creditAmount;
       return acc;
     }, { totalDebit: 0, totalCredit: 0 });
-    console.log(`⚡ Totals calculation: ${Date.now() - totalsStart}ms`);
+
 
     const totalTime = Date.now() - startTime;
-    console.log(`✅ TOTAL RESPONSE TIME: ${totalTime}ms`);
+
 
     return res.json({
       success: true,

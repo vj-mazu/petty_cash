@@ -185,11 +185,11 @@ const Ledgers: React.FC = () => {
       ) : (
         <div className="bg-white rounded-xl shadow-md border border-gray-300 overflow-hidden">
           {/* Table Header with Colorful styling */}
-          <div className="grid grid-cols-12 gap-0 border-b-2 border-gray-400 bg-gradient-to-r from-blue-500 to-purple-600 font-bold text-white">
-            <div className="col-span-4 p-3 border-r border-white/20 text-left">Ledger Name</div>
-            <div className="col-span-5 p-3 border-r border-white/20 text-left">Remarks</div>
-            <div className="col-span-2 p-3 border-r border-white/20 text-left">Created Date</div>
-            <div className="col-span-1 p-3 text-center">Actions</div>
+          <div className="grid grid-cols-12 gap-0 border-b-2 border-gray-400 bg-gradient-to-r from-blue-500 to-purple-600 font-bold text-white text-xs">
+            <div className="col-span-4 py-1.5 px-2 border-r border-white/20 text-left">Ledger Name</div>
+            <div className="col-span-5 py-1.5 px-2 border-r border-white/20 text-left">Remarks</div>
+            <div className="col-span-2 py-1.5 px-2 border-r border-white/20 text-left">Created Date</div>
+            <div className="col-span-1 py-1.5 px-2 text-center">Actions</div>
           </div>
 
           {/* Table Rows */}
@@ -204,22 +204,22 @@ const Ledgers: React.FC = () => {
                 onClick={() => navigate(`/ledgers/${ledger.id}`)}
               >
                 {/* Ledger Name */}
-                <div className="col-span-4 p-3 border-r border-gray-200 font-medium text-gray-800 truncate bg-white">
+                <div className="col-span-4 py-1.5 px-2 border-r border-gray-200 font-medium text-gray-800 truncate bg-white text-sm">
                   {ledger.name}
                 </div>
 
                 {/* Description */}
-                <div className="col-span-5 p-3 text-gray-600 border-r border-gray-200 truncate">
+                <div className="col-span-5 py-1.5 px-2 text-gray-600 border-r border-gray-200 truncate text-sm">
                   {ledger.description || '-'}
                 </div>
 
                 {/* Created Date */}
-                <div className="col-span-2 p-3 text-gray-600 border-r border-gray-200 text-sm">
+                <div className="col-span-2 py-1.5 px-2 text-gray-600 border-r border-gray-200 text-xs">
                   {format(new Date(ledger.createdAt), 'MMM dd, yyyy')}
                 </div>
 
                 {/* Actions */}
-                <div className="col-span-1 p-3 flex items-center justify-center space-x-2">
+                <div className="col-span-1 py-1 px-2 flex items-center justify-center space-x-1">
                   {canEdit && (
                     <button
                       onClick={(e) => {
@@ -270,8 +270,8 @@ const Ledgers: React.FC = () => {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`px-3 py-2 text-sm rounded-md ${currentPage === page
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white border border-gray-300 hover:bg-gray-50'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-white border border-gray-300 hover:bg-gray-50'
                   }`}
               >
                 {page}

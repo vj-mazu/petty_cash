@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const performanceCache = require('../services/performanceCache');
 
 // Role hierarchy for access control - higher numbers = more privileges
 const ROLE_HIERARCHY = {
@@ -53,7 +54,7 @@ const canExport = (role) => {
   return isAdmin(role) || isManager(role) || role === 'staff';
 };
 
-// Authentication middleware
+// Authentication middleware with user caching
 const authenticate = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -66,7 +67,18 @@ const authenticate = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id);
+
+    // Check cache first to avoid DB lookup on every request
+    const cacheKey = `auth_user_${decoded.id}`;
+    let user = performanceCache.getUser(cacheKey);
+
+    if (!user) {
+      // Cache miss — fetch from DB
+      user = await User.findByPk(decoded.id);
+      if (user) {
+        performanceCache.setUser(cacheKey, user, 60); // Cache for 60 seconds
+      }
+    }
 
     if (!user || !user.isActive) {
       return res.status(401).json({

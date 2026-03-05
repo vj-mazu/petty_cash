@@ -6,25 +6,25 @@ const NodeCache = require('node-cache');
 class PerformanceCache {
   constructor() {
     // Cache configurations for different data types
-    this.balanceCache = new NodeCache({ 
+    this.balanceCache = new NodeCache({
       stdTTL: 300,    // 5 minutes for balance data
       checkperiod: 60, // Check for expired keys every minute
       useClones: false // Faster, but be careful with mutations
     });
-    
-    this.ledgerCache = new NodeCache({ 
+
+    this.ledgerCache = new NodeCache({
       stdTTL: 1800,   // 30 minutes for ledger data
       checkperiod: 120,
       useClones: false
     });
-    
-    this.userCache = new NodeCache({ 
+
+    this.userCache = new NodeCache({
       stdTTL: 3600,   // 1 hour for user data
       checkperiod: 300,
       useClones: false
     });
-    
-    this.transactionStatsCache = new NodeCache({ 
+
+    this.transactionStatsCache = new NodeCache({
       stdTTL: 180,    // 3 minutes for transaction statistics
       checkperiod: 30,
       useClones: false
@@ -44,13 +44,10 @@ class PerformanceCache {
 
   setupCacheEvents() {
     const caches = [this.balanceCache, this.ledgerCache, this.userCache, this.transactionStatsCache];
-    
+
     caches.forEach(cache => {
       cache.on('set', () => this.stats.sets++);
       cache.on('del', () => this.stats.deletes++);
-      cache.on('expired', (key, value) => {
-        console.log(`Cache key expired: ${key}`);
-      });
     });
   }
 
@@ -161,7 +158,7 @@ class PerformanceCache {
   invalidateTransactionCaches(ledgerId = null, date = null) {
     // Invalidate balance caches
     this.invalidateBalance(ledgerId, date);
-    
+
     // Invalidate transaction list caches
     const keys = this.transactionStatsCache.keys();
     keys.forEach(key => {
@@ -199,7 +196,7 @@ class PerformanceCache {
     this.ledgerCache.flushAll();
     this.userCache.flushAll();
     this.transactionStatsCache.flushAll();
-    
+
     // Reset stats
     this.stats = {
       hits: 0,

@@ -8,11 +8,12 @@ const sequelizeOptions = {
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
 
   // Optimized connection pool for high transaction volume
+  // Connection pool optimized for high throughput
   pool: {
-    max: 20,           // Increased max connections for high throughput
+    max: 25,           // Increased for concurrent queries
     min: 5,            // Keep minimum connections warm
-    acquire: 60000,    // 60 seconds to acquire connection
-    idle: 30000,       // 30 seconds idle before release
+    acquire: 30000,    // 30 seconds to acquire (fail fast)
+    idle: 10000,       // 10 seconds idle before release
     evict: 1000,       // Check for idle connections every second
     handleDisconnects: true
   },
@@ -24,15 +25,12 @@ const sequelizeOptions = {
       rejectUnauthorized: false
     } : false,
 
-    // PostgreSQL-specific performance settings
-    application_name: 'cash_management_system',
-    statement_timeout: 30000,     // 30 second query timeout
-    idle_in_transaction_session_timeout: 60000, // 60 seconds
-
-    // Connection-level optimizations
-    options: process.env.NODE_ENV === 'production'
-      ? '-c shared_preload_libraries=pg_stat_statements -c track_activity_query_size=2048'
-      : undefined
+    // PostgreSQL performance settings for 10M+ records
+    application_name: 'petty_cash_prod',
+    statement_timeout: 10000,     // 10s query timeout (fast-fail)
+    idle_in_transaction_session_timeout: 5000, // 5s (prevent connection leaks)
+    keepAlive: true,               // TCP keep-alive for connection stability
+    keepAliveInitialDelayMillis: 10000,
   },
 
   // Query optimization settings

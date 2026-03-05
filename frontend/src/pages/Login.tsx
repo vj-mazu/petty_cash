@@ -54,82 +54,28 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {/* Animated Background Orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-          className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/10 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ rotate: [360, 0], scale: [1, 0.8, 1] }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-          className="absolute -bottom-32 -left-32 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ y: [-20, 20, -20], x: [-10, 10, -10] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-1/3 right-1/4 w-40 h-40 bg-primary-400/5 rounded-full blur-2xl"
-        />
-      </div>
-
-      {/* Floating ₹ symbols */}
-      <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          animate={{ y: [-10, 10, -10], rotate: [0, 5, -5, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-20 left-20 text-primary-400/20"
-        >
-          <span className="text-5xl">₹</span>
-        </motion.div>
-        <motion.div
-          animate={{ y: [10, -10, 10], rotate: [0, -5, 5, 0] }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute top-40 right-32 text-emerald-400/20"
-        >
-          <span className="text-4xl">₹</span>
-        </motion.div>
-        <motion.div
-          animate={{ y: [-15, 15, -15], rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-40 left-32 text-primary-300/15"
-        >
-          <span className="text-3xl">₹</span>
-        </motion.div>
-      </div>
 
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.3 }}
         className="max-w-md w-full space-y-6 relative z-10"
       >
         {/* Logo & Title */}
         <div className="text-center">
           <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
             className="mx-auto h-16 w-16 bg-gradient-to-br from-primary-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-primary-500/30 relative overflow-hidden"
           >
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute inset-0 bg-gradient-to-br from-primary-300 to-emerald-400 rounded-2xl"
-            />
-            <motion.span
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="text-white font-bold text-2xl relative z-10"
-            >
-              ₹
-            </motion.span>
+            <span className="text-white font-bold text-2xl relative z-10">₹</span>
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.3 }}
             className="mt-4 text-3xl font-bold bg-gradient-to-r from-primary-400 via-emerald-400 to-primary-300 bg-clip-text text-transparent"
           >
             Petty Cash
@@ -137,7 +83,7 @@ const Login: React.FC = () => {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.2 }}
             className="mt-1 text-sm text-gray-400"
           >
             Sign in to manage your finances
@@ -146,9 +92,9 @@ const Login: React.FC = () => {
 
         {/* Login Card */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.15 }}
           className="bg-white/5 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/10"
         >
           <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
@@ -164,9 +110,9 @@ const Login: React.FC = () => {
 
             {/* Username */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
             >
               <label htmlFor="login-username" className="block text-sm font-medium text-gray-300 mb-1.5">
                 Username
@@ -191,9 +137,9 @@ const Login: React.FC = () => {
 
             {/* Password */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.15 }}
             >
               <label htmlFor="login-password" className="block text-sm font-medium text-gray-300 mb-1.5">
                 Password
@@ -225,21 +171,15 @@ const Login: React.FC = () => {
 
             {/* Sign In Button */}
             <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              whileHover={{ scale: 1.02, boxShadow: '0 10px 40px rgba(20, 184, 166, 0.2)' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isSubmitting}
               className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-primary-600 to-emerald-600 hover:from-primary-500 hover:to-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all relative overflow-hidden"
             >
-              {/* Button shine */}
-              <motion.div
-                animate={{ x: [-100, 300] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
-              />
 
               {isSubmitting ? (
                 <motion.div
@@ -261,7 +201,7 @@ const Login: React.FC = () => {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
+          transition={{ delay: 0.3 }}
           className="text-center text-xs text-gray-600"
         >
           Secured &middot; All access is logged and monitored

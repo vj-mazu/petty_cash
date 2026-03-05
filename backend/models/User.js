@@ -59,12 +59,12 @@ const User = sequelize.define('User', {
   hooks: {
     beforeCreate: async (user) => {
       if (user.password) {
-        user.password = await bcrypt.hash(user.password, parseInt(process.env.BCRYPT_ROUNDS) || 12);
+        user.password = await bcrypt.hash(user.password, parseInt(process.env.BCRYPT_ROUNDS) || 10);
       }
     },
     beforeUpdate: async (user) => {
       if (user.changed('password')) {
-        user.password = await bcrypt.hash(user.password, parseInt(process.env.BCRYPT_ROUNDS) || 12);
+        user.password = await bcrypt.hash(user.password, parseInt(process.env.BCRYPT_ROUNDS) || 10);
       }
     }
   }

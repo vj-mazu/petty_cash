@@ -307,9 +307,9 @@ const Transactions: React.FC = () => {
         sort_order: 'DESC'
       };
 
-      // Debug logging for date filters
+      // Date filters applied
       if (startDate || endDate) {
-        console.log('📅 Date filters applied:', { startDate, endDate });
+        // filters active
       }
 
       // Make business balances call optional - if it fails, continue with fallback
@@ -698,6 +698,8 @@ const Transactions: React.FC = () => {
             : t.createdBy
         }));
 
+        const closingBalance = openingBalance + dailyCredit - dailyDebit;
+
         const pdfSuccess = generateTransactionPDF(pdfTransactions, {
           companyName: 'PETTY CASH',
           dateRange: {
@@ -707,7 +709,12 @@ const Transactions: React.FC = () => {
           openingBalance: openingBalance,
           includeRunningBalance: true,
           includeCreatedBy: false,
-          separateCreditDebit: false
+          separateCreditDebit: false,
+          dailyTotals: {
+            credit: dailyCredit,
+            debit: dailyDebit,
+            closing: closingBalance
+          }
         });
 
         if (!pdfSuccess) {
@@ -783,10 +790,8 @@ const Transactions: React.FC = () => {
       }
     }
 
-    console.log('Validation errors:', errors);
     setEditFormErrors(errors);
     const isValid = Object.keys(errors).length === 0;
-    console.log('Form is valid:', isValid);
     return isValid;
   };
 
@@ -924,7 +929,6 @@ const Transactions: React.FC = () => {
         setEditFormErrors({});
 
         // Refresh the list
-        console.log('Refreshing transactions list');
         await fetchTransactions();
       } else {
         console.error('API response indicates failure:', response);
@@ -1133,17 +1137,11 @@ const Transactions: React.FC = () => {
       ? openingByDate[firstDate]
       : openingBalanceAmount;
 
-    console.log('🔍 Starting balance calculation:');
-    console.log('   First date:', firstDate);
-    console.log('   First date opening from backend:', openingByDate[firstDate]);
-    console.log('   System opening balance:', openingBalanceAmount);
-    console.log('   Starting runningBalance:', runningBalance);
-    console.log('   Today string:', todayStr);
+
 
     // Accumulate through ALL previous dates (before today)
     for (const date of allTransactionDates) {
       if (date >= todayStr) {
-        console.log('   ⏹️ Stopping at date:', date, '(reached today)');
         break; // Stop when we reach today
       }
 
@@ -1152,20 +1150,17 @@ const Transactions: React.FC = () => {
       const dayCredit = dayTransactions.filter(t => t.type === 'credit').reduce((sum, t) => sum + (t.creditAmount || 0), 0);
       const dayDebit = dayTransactions.filter(t => t.type === 'debit').reduce((sum, t) => sum + (t.debitAmount || 0), 0);
 
-      console.log(`   📅 Processing ${date}: Credit ₹${dayCredit}, Debit ₹${dayDebit}`);
-      console.log(`      Before: ₹${runningBalance}`);
+
 
       // Calculate this date's closing (which becomes next day's opening)
       runningBalance = runningBalance + dayCredit - dayDebit;
 
-      console.log(`      After: ₹${runningBalance}`);
+
     }
 
     // The accumulated balance is today's opening
     todayOpeningBalance = runningBalance;
-    console.log('📊 Today\'s opening balance calculated:', todayStr, todayOpeningBalance);
-    console.log('📊 First date:', firstDate, 'First date opening:', openingByDate[firstDate], 'System opening:', openingBalanceAmount);
-    console.log('📊 All transaction dates:', allTransactionDates);
+
   } else if (openingByDate[todayStr] !== undefined) {
     // If backend has today's opening balance, use it
     todayOpeningBalance = openingByDate[todayStr];
@@ -1173,7 +1168,7 @@ const Transactions: React.FC = () => {
   } else {
     // No previous transactions, use system opening
     todayOpeningBalance = openingBalanceAmount;
-    console.log('📊 No previous transactions, using system opening:', openingBalanceAmount);
+
   }
 
   // Determine if there are no transactions to display after all filters

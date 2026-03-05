@@ -90,11 +90,9 @@ const login = async (req, res) => {
       });
     }
 
-    // Update last login
-    await user.update({ lastLogin: new Date() });
-
     const token = generateToken(user.id);
 
+    // Send response FIRST, then update lastLogin in background (fire-and-forget)
     res.json({
       success: true,
       message: 'Login successful',
@@ -103,12 +101,17 @@ const login = async (req, res) => {
         token
       }
     });
+
+    // Non-blocking lastLogin update — runs after response is sent
+    setImmediate(() => {
+      user.update({ lastLogin: new Date() }).catch(() => { });
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
       message: 'Login failed',
-      error: error.message
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
 };

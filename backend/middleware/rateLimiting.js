@@ -1,22 +1,21 @@
 const rateLimit = require('express-rate-limit');
 
-// General API rate limiting - DISABLED for unlimited access
+// General API rate limiting — 200 requests per minute per IP
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 999999, // Effectively unlimited requests
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 200, // 200 requests per minute per IP
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.'
   },
   standardHeaders: true,
-  legacyHeaders: false,
-  skip: () => true // Skip all rate limiting
+  legacyHeaders: false
 });
 
-// Authentication rate limiting - VERY HIGH LIMIT
+// Authentication rate limiting — stricter for brute-force protection
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10000, // Very high limit for auth requests
+  max: 30, // 30 auth attempts per 15 min window
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again later.'
@@ -26,15 +25,14 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true // Don't count successful requests
 });
 
-// Transaction rate limiting - UNLIMITED
+// Transaction rate limiting — generous for data entry workflows
 const transactionLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 999999, // Effectively unlimited transactions
+  max: 300, // 300 transaction requests per minute
   message: {
     success: false,
     message: 'Too many transaction requests, please slow down.'
-  },
-  skip: () => true // Skip all rate limiting for transactions
+  }
 });
 
 module.exports = {

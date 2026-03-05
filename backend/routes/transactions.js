@@ -16,7 +16,7 @@ const {
   unsuspendTransaction,
   approveTransaction
 } = require('../controllers/transactionController');
-const { getUltraFastTransactions } = require('../controllers/ultraFastTransactionController');
+const { streamTransactions, getFastCount } = require('../controllers/streamController');
 const { authenticate, authorize, authorizeAdminOnly, authorizeCreate, authorizeEdit, authorizeDelete, authorizeView, authorizeExport } = require('../middleware/auth');
 // const { transactionLimiter } = require('../middleware/rateLimiting'); // Disabled for unlimited access
 const { handleValidation } = require('../middleware/errorHandler');
@@ -63,6 +63,18 @@ router.get('/audit',
   getTransactionAuditLogs
 );
 
+// Streaming export (NDJSON) — handles 10M+ records without buffering
+router.get('/export-stream',
+  authorizeExport(),
+  streamTransactions
+);
+
+// Fast approximate count using PostgreSQL statistics
+router.get('/fast-count',
+  authorizeView(),
+  getFastCount
+);
+
 // CRUD operations
 router.post('/',
   authorizeCreate(), // Staff + Admin can create transactions
@@ -72,11 +84,11 @@ router.post('/',
 );
 
 router.get('/',
-  authorizeView(), // Staff + Admin can view transactions
+  authorizeView(),
   validatePagination,
   validateDateRange,
   handleValidation,
-  getUltraFastTransactions // ULTRA-FAST: Uses optimized raw SQL queries
+  getAllTransactions // Optimized: cursor pagination + conditional count
 );
 
 router.get('/:id',

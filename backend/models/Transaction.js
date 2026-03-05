@@ -168,6 +168,16 @@ const Transaction = sequelize.define('Transaction', {
     {
       fields: ['is_suspended'],
       name: 'idx_transactions_suspended'
+    },
+    // Covering index for the main paginated query — critical for 10M+ records
+    {
+      fields: ['is_suspended', 'date', 'createdAt'],
+      name: 'idx_transactions_main_query'
+    },
+    // Cursor pagination index
+    {
+      fields: ['date', 'id'],
+      name: 'idx_transactions_cursor_page'
     }
   ],
   validate: {
@@ -210,27 +220,14 @@ Transaction.prototype.toJSON = function () {
   // Add computed fields
   values.amount = this.getTransactionAmount();
   values.direction = this.getTransactionDirection();
-  values.reference = this.reference; // Ensure reference ('A') is included
-  // Friendly formatted transaction number with leading zeros (min 2 digits)
-  // Add formatted transaction number with "T" prefix
+  values.reference = this.reference;
+
+  // Formatted transaction number with "T" prefix
   if (values.transactionNumber !== undefined && values.transactionNumber !== null) {
     values.displayTransactionNumber = `T${values.transactionNumber.toString().padStart(2, '0')}`;
   }
 
-  // Format amounts for display
-  if (values.debitAmount) {
-    values.formattedDebitAmount = parseFloat(values.debitAmount).toLocaleString('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    });
-  }
-  if (values.creditAmount) {
-    values.formattedCreditAmount = parseFloat(values.creditAmount).toLocaleString('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    });
-  }
-
+  // Note: Amount formatting removed — frontend handles this via formatIndianCurrency()
   return values;
 };
 
@@ -325,17 +322,24 @@ Transaction.getTotalsByDateRange = async function (startDate, endDate, ledgerId 
   };
 };
 
-// Hooks
+// Hooks — Use PostgreSQL SEQUENCE for O(1) numbering instead of MAX()
 Transaction.beforeCreate(async (transaction) => {
   if (!transaction.referenceNumber) {
     transaction.referenceNumber = transaction.generateReferenceNumber();
   }
 
-  // Auto-generate transaction number if not provided
+  // Use PostgreSQL SEQUENCE for instant numbering (O(1) vs O(N) at 10M rows)
   if (!transaction.transactionNumber) {
-    // Only check transactions table for the max number to maintain separate sequence
-    const maxTransactionNumber = await Transaction.max('transactionNumber');
-    transaction.transactionNumber = (maxTransactionNumber || 0) + 1;
+    try {
+      const [result] = await sequelize.query(
+        `SELECT nextval('transaction_number_seq') as next_num`
+      );
+      transaction.transactionNumber = parseInt(result[0].next_num);
+    } catch (error) {
+      // Fallback to MAX() if sequence doesn't exist yet (pre-migration)
+      const maxTransactionNumber = await Transaction.max('transactionNumber');
+      transaction.transactionNumber = (maxTransactionNumber || 0) + 1;
+    }
   }
 });
 

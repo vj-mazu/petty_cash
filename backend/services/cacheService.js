@@ -59,15 +59,13 @@ class CacheService {
   getTransactions(params) {
     const key = this.generateCacheKey('txlist', params);
     const cached = this.transactionCache.get(key);
-    
+
     if (cached) {
       this.stats.hits++;
-      console.log('🎯 Cache HIT:', key);
       return cached;
     }
-    
+
     this.stats.misses++;
-    console.log('❌ Cache MISS:', key);
     return null;
   }
 
@@ -78,7 +76,6 @@ class CacheService {
     const key = this.generateCacheKey('txlist', params);
     this.transactionCache.set(key, data);
     this.stats.sets++;
-    console.log('💾 Cache SET:', key);
   }
 
   /**
@@ -87,13 +84,12 @@ class CacheService {
   getSummary(params) {
     const key = this.generateCacheKey('summary', params);
     const cached = this.summaryCache.get(key);
-    
+
     if (cached) {
       this.stats.hits++;
-      console.log('🎯 Cache HIT (Summary):', key);
       return cached;
     }
-    
+
     this.stats.misses++;
     return null;
   }
@@ -113,13 +109,12 @@ class CacheService {
   getBalance(date) {
     const key = `balance:${date}`;
     const cached = this.balanceCache.get(key);
-    
+
     if (cached) {
       this.stats.hits++;
-      console.log('🎯 Cache HIT (Balance):', key);
       return cached;
     }
-    
+
     this.stats.misses++;
     return null;
   }
@@ -139,7 +134,6 @@ class CacheService {
   invalidateTransactions() {
     const deletedCount = this.transactionCache.flushAll();
     this.stats.deletes += deletedCount;
-    console.log('🗑️  Transaction cache invalidated:', deletedCount, 'entries');
   }
 
   /**
@@ -148,7 +142,6 @@ class CacheService {
   invalidateSummaries() {
     const deletedCount = this.summaryCache.flushAll();
     this.stats.deletes += deletedCount;
-    console.log('🗑️  Summary cache invalidated');
   }
 
   /**
@@ -167,7 +160,6 @@ class CacheService {
     this.transactionCache.flushAll();
     this.summaryCache.flushAll();
     this.balanceCache.flushAll();
-    console.log('🗑️  All caches invalidated');
   }
 
   /**
@@ -192,12 +184,12 @@ class CacheService {
    */
   async warmup(Transaction, Ledger) {
     console.log('🔥 Warming up cache...');
-    
+
     try {
       // Pre-cache recent transactions (last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
+
       const recentTx = await Transaction.findAll({
         where: {
           date: {
