@@ -112,10 +112,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (token && userData) {
         try {
           const user = JSON.parse(userData);
-          
+
           // Set loading state while verifying token
           dispatch({ type: 'SET_LOADING', payload: true });
-          
+
           // Verify token is still valid by fetching profile
           try {
             const response = await authApi.getProfile();
@@ -171,9 +171,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(response.message || 'Login failed');
       }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+      let errorMessage = error.response?.data?.message || error.message || 'Login failed';
+
+      // Specifically handle axios timeout errors
+      if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+        errorMessage = 'The server is taking a bit longer to start up (cold start). Please wait a moment and try again.';
+      } else if (error.message === 'Network Error') {
+        errorMessage = 'Network Error. The server might be starting up or is unreachable.';
+      }
+
       dispatch({ type: 'LOGIN_FAILURE', payload: errorMessage });
-      toast.error(errorMessage);
+      toast.error(errorMessage, { autoClose: 6000 });
       throw error;
     }
   };
