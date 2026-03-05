@@ -42,6 +42,13 @@ const Users: React.FC = () => {
       toast.error('Password must be at least 6 characters');
       return;
     }
+
+    // Strict password regex: at least one lowercase, one uppercase, and one number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+    if (!passwordRegex.test(newUser.password)) {
+      toast.error('Password must contain at least one uppercase letter, one lowercase letter, and one number');
+      return;
+    }
     try {
       setCreating(true);
       const autoEmail = `${newUser.username.toLowerCase().replace(/\s+/g, '')}@petticash.local`;
@@ -141,6 +148,11 @@ const Users: React.FC = () => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="mt-1.5 text-[10px] text-gray-500 leading-tight">
+                Must contain <span className="text-blue-600 font-bold">Uppercase</span>,
+                <span className="text-blue-600 font-bold"> Lowercase</span>, and
+                <span className="text-blue-600 font-bold"> Number</span> (Min 6 chars).
+              </p>
             </div>
 
             {/* Role */}
@@ -153,12 +165,12 @@ const Users: React.FC = () => {
                     type="button"
                     onClick={() => setNewUser({ ...newUser, role })}
                     className={`py-2 px-3 rounded-lg text-sm font-medium border-2 transition-all capitalize ${newUser.role === role
-                        ? role === 'admin'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : role === 'manager'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                      ? role === 'admin'
+                        ? 'border-red-500 bg-red-50 text-red-700'
+                        : role === 'manager'
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
                       }`}
                   >
                     {role}
