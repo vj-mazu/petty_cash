@@ -104,13 +104,9 @@ app.disable('x-powered-by');
 
 // Set security headers and response time tracking
 app.use((req, res, next) => {
-  const start = Date.now();
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.on('finish', () => {
-    res.setHeader('X-Response-Time', `${Date.now() - start}ms`);
-  });
   next();
 });
 
@@ -230,60 +226,19 @@ const autoSetupDatabase = async () => {
     if (userCount === 0) {
       console.log('🔧 No users found. Setting up default users...');
 
-      // Create default users
-      const defaultUsers = [
-        {
-          username: 'admin',
-          email: 'admin@cashmanagement.com',
-          password: 'admin123',
-          role: 'admin'
-        },
-        {
-          username: 'manager',
-          email: 'manager@cashmanagement.com',
-          password: 'manager123',
-          role: 'manager'
-        },
-        {
-          username: 'staff',
-          email: 'staff@cashmanagement.com',
-          password: 'staff123',
-          role: 'staff'
-        }
-      ];
-
-      const createdUsers = [];
-      for (const userData of defaultUsers) {
-        const user = await User.create({
-          username: userData.username,
-          email: userData.email,
-          password: userData.password, // Will be hashed by the model hook
-          role: userData.role,
-          isActive: true
-        });
-        createdUsers.push(user);
-        console.log(`✅ User created: ${userData.username} (${userData.role})`);
-      }
-
-      // Create a test user and log its hashed password
-      const testUser = await User.create({
-        username: 'testuser',
-        email: 'test@example.com',
-        password: 'password123',
-        role: 'staff',
+      // Create only the admin user
+      const adminUser = await User.create({
+        username: 'admin',
+        email: 'admin@cashmanagement.com',
+        password: 'admin123', // Will be hashed by the model hook
+        role: 'admin',
         isActive: true
       });
-      console.log(`
---- Test User Created ---
-Username: ${testUser.username}
-Email: ${testUser.email}
-Role: ${testUser.role}
-Hashed Password: ${testUser.password}
-Plain Text Password: password123
--------------------------
-`);
+      console.log(`✅ Admin user created successfully`);
 
-      const adminUser = createdUsers[0]; // Use admin1 as the creator
+
+
+
 
       // Create default system settings if they don't exist
       const settingsCount = await SystemSettings.count();
@@ -443,9 +398,9 @@ const startServer = async () => {
     try {
       const { Ledger, Transaction } = require('./models');
       const ledgers = await Ledger.findAll({ where: { isActive: true }, attributes: ['id', 'name', 'ledgerType'] });
-      performanceCache.set('warm_ledgers', ledgers, 300);
+      performanceCache.setLedger('warm_ledgers', ledgers, 300);
       const txCount = await Transaction.count({ where: { isSuspended: false } });
-      performanceCache.set('warm_txcount', txCount, 60);
+      performanceCache.setTransactionStats('warm_txcount', txCount, 60);
       logger.info(`Cache warmed: ${ledgers.length} ledgers, ~${txCount} transactions`);
     } catch (warmErr) {
       logger.warn('Cache warm-up failed (non-critical):', warmErr.message);
