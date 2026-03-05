@@ -148,7 +148,7 @@ export const generateTransactionPDF = (
         String(i + 1),
         fmtDate(t.date),
         t.displayTransactionNumber || (t.transactionNumber ? String(t.transactionNumber).padStart(2, '0') : '-'),
-        isCredit ? 'CR' : 'DR',
+        isCredit ? 'CRT' : 'DBT',
         amtStr,
         t.ledger?.name || '',
         t.remarks || '-'
@@ -191,10 +191,10 @@ export const generateTransactionPDF = (
         if (data.section === 'body') {
           // CR green, DR red
           if (data.column.index === 3) {
-            if (data.cell.raw === 'CR') {
+            if (data.cell.raw === 'CRT') {
               data.cell.styles.textColor = [22, 163, 74];
               data.cell.styles.fontStyle = 'bold';
-            } else if (data.cell.raw === 'DR') {
+            } else if (data.cell.raw === 'DBT') {
               data.cell.styles.textColor = [220, 38, 38];
               data.cell.styles.fontStyle = 'bold';
             }
@@ -202,7 +202,7 @@ export const generateTransactionPDF = (
           // Amount colors
           if (data.column.index === 4) {
             const rowType = body[data.row.index]?.[3];
-            data.cell.styles.textColor = rowType === 'CR' ? [22, 163, 74] : [220, 38, 38];
+            data.cell.styles.textColor = rowType === 'CRT' ? [22, 163, 74] : [220, 38, 38];
             data.cell.styles.fontStyle = 'bold';
           }
         }

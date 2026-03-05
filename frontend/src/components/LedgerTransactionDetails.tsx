@@ -260,7 +260,7 @@ const LedgerTransactionDetails: React.FC<LedgerTransactionDetailsProps> = ({
                                 transaction.transactionType === 'combined' ? 'bg-blue-100 text-blue-800' :
                                   transaction.creditAmount > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                 }`}>
-                                {transaction.isSuspended ? 'SUS' : getTransactionType(transaction) === 'Credit' ? 'CR' : getTransactionType(transaction) === 'Debit' ? 'DR' : 'CMB'}
+                                {transaction.isSuspended ? 'SUS' : getTransactionType(transaction) === 'Credit' ? 'CRT' : getTransactionType(transaction) === 'Debit' ? 'DBT' : 'CMB'}
                               </span>
                             </td>
                             <td className="border border-gray-300 px-1.5 py-1 text-center text-xs font-medium">

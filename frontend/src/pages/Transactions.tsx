@@ -1754,7 +1754,7 @@ const Transactions: React.FC = () => {
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-red-100 text-red-800'
                                     }`}>
-                                    {isCredit ? 'CR' : 'DR'}
+                                    {isCredit ? 'CRT' : 'DBT'}
                                   </span>
                                 </td>
                                 <td className="border border-gray-300 px-1.5 py-1 text-center text-xs font-medium">
