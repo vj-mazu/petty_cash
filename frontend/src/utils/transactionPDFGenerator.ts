@@ -182,7 +182,7 @@ export const generateTransactionPDF = (
         1: { halign: 'center', cellWidth: 22 },
         2: { halign: 'center', cellWidth: 14 },
         3: { halign: 'center', cellWidth: 14 },
-        4: { halign: 'right', cellWidth: 26 },
+        4: { halign: 'left', cellWidth: 26 },
         5: { halign: 'left', cellWidth: 36 },
         6: { halign: 'left' }
       },

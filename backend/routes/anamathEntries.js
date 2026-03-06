@@ -144,6 +144,160 @@ router.get('/', authenticate, [
   }
 });
 
+// GET /api/anamath-entries/stats/summary - Get anamath entries statistics
+router.get('/stats/summary', authenticate, [
+  query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
+  query('endDate').optional().isISO8601().withMessage('Invalid end date format'),
+  query('ledgerId').optional().isUUID().withMessage('Invalid ledger ID')
+], handleValidationErrors, async (req, res) => {
+  try {
+    const { startDate, endDate, ledgerId } = req.query;
+
+    // Default to current month if no dates provided
+    const start = startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    const end = endDate || new Date().toISOString().split('T')[0];
+
+    const whereClause = {
+      // All users are admin now, so no user restrictions
+      date: {
+        [Op.between]: [start, end]
+      }
+    };
+
+    if (ledgerId) {
+      whereClause.ledgerId = ledgerId;
+    }
+
+    const stats = await AnamathEntry.findOne({
+      where: whereClause,
+      attributes: [
+        [AnamathEntry.sequelize.fn('SUM', AnamathEntry.sequelize.col('amount')), 'totalAmount'],
+        [AnamathEntry.sequelize.fn('COUNT', AnamathEntry.sequelize.col('id')), 'totalEntries'],
+        [AnamathEntry.sequelize.fn('AVG', AnamathEntry.sequelize.col('amount')), 'averageAmount'],
+        [AnamathEntry.sequelize.fn('MAX', AnamathEntry.sequelize.col('amount')), 'maxAmount'],
+        [AnamathEntry.sequelize.fn('MIN', AnamathEntry.sequelize.col('amount')), 'minAmount']
+      ],
+      raw: true
+    });
+
+    const summary = {
+      totalAmount: parseFloat(stats.totalAmount) || 0,
+      totalEntries: parseInt(stats.totalEntries) || 0,
+      averageAmount: parseFloat(stats.averageAmount) || 0,
+      maxAmount: parseFloat(stats.maxAmount) || 0,
+      minAmount: parseFloat(stats.minAmount) || 0,
+      dateRange: { start, end }
+    };
+
+    res.json({
+      success: true,
+      data: summary,
+      message: 'Anamath entries statistics retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error getting anamath entries statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get anamath entries statistics'
+    });
+  }
+});
+
+// GET /api/anamath-entries/closed - Get all closed anamath entries
+router.get('/closed/list', authenticate, [
+  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+  query('limit').optional().isInt({ min: 1, max: 10000 }).withMessage('Limit must be between 1 and 10000'),
+  query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
+  query('endDate').optional().isISO8601().withMessage('Invalid end date format'),
+  query('ledgerId').optional().isUUID().withMessage('Invalid ledger ID'),
+  query('search').optional()
+], handleValidationErrors, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10000; // Default to high limit for unlimited records
+    const offset = (page - 1) * limit;
+
+    const whereClause = {
+      isClosed: true // Only get closed entries
+    };
+
+    // Date range filter (for entry date)
+    if (req.query.startDate && req.query.endDate) {
+      whereClause.date = {
+        [Op.between]: [req.query.startDate, req.query.endDate]
+      };
+    } else if (req.query.startDate) {
+      whereClause.date = {
+        [Op.gte]: req.query.startDate
+      };
+    } else if (req.query.endDate) {
+      whereClause.date = {
+        [Op.lte]: req.query.endDate
+      };
+    }
+
+    // Ledger filter
+    if (req.query.ledgerId) {
+      whereClause.ledgerId = req.query.ledgerId;
+    }
+
+    // Search filter
+    if (req.query.search) {
+      whereClause[Op.or] = [
+        { remarks: { [Op.iLike]: `%${req.query.search}%` } },
+        { referenceNumber: { [Op.iLike]: `%${req.query.search}%` } }
+      ];
+    }
+
+    const { count, rows: closedEntries } = await AnamathEntry.findAndCountAll({
+      where: whereClause,
+      include: [
+        {
+          model: Ledger,
+          as: 'ledger',
+          attributes: ['id', 'name', 'ledgerType'],
+          required: false
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'username', 'email']
+        },
+        {
+          model: User,
+          as: 'closedByUser',
+          attributes: ['id', 'username', 'email']
+        }
+      ],
+      order: [['closedAt', 'DESC'], ['date', 'DESC']],
+      limit,
+      offset
+    });
+
+    res.json({
+      success: true,
+      data: {
+        anamathEntries: closedEntries,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(count / limit),
+          totalItems: count,
+          itemsPerPage: limit
+        }
+      },
+      message: 'Closed anamath entries retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error getting closed anamath entries:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get closed anamath entries'
+    });
+  }
+});
+
+
+
 // GET /api/anamath-entries/:id - Get specific anamath entry
 router.get('/:id', authenticate, [
   param('id').isUUID().withMessage('Invalid anamath entry ID')
@@ -454,65 +608,6 @@ router.delete('/:id', authenticate, authorizeDelete(), [
   }
 });
 
-// GET /api/anamath-entries/stats/summary - Get anamath entries statistics
-router.get('/stats/summary', authenticate, [
-  query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
-  query('endDate').optional().isISO8601().withMessage('Invalid end date format'),
-  query('ledgerId').optional().isUUID().withMessage('Invalid ledger ID')
-], handleValidationErrors, async (req, res) => {
-  try {
-    const { startDate, endDate, ledgerId } = req.query;
-
-    // Default to current month if no dates provided
-    const start = startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-    const end = endDate || new Date().toISOString().split('T')[0];
-
-    const whereClause = {
-      // All users are admin now, so no user restrictions
-      date: {
-        [Op.between]: [start, end]
-      }
-    };
-
-    if (ledgerId) {
-      whereClause.ledgerId = ledgerId;
-    }
-
-    const stats = await AnamathEntry.findOne({
-      where: whereClause,
-      attributes: [
-        [AnamathEntry.sequelize.fn('SUM', AnamathEntry.sequelize.col('amount')), 'totalAmount'],
-        [AnamathEntry.sequelize.fn('COUNT', AnamathEntry.sequelize.col('id')), 'totalEntries'],
-        [AnamathEntry.sequelize.fn('AVG', AnamathEntry.sequelize.col('amount')), 'averageAmount'],
-        [AnamathEntry.sequelize.fn('MAX', AnamathEntry.sequelize.col('amount')), 'maxAmount'],
-        [AnamathEntry.sequelize.fn('MIN', AnamathEntry.sequelize.col('amount')), 'minAmount']
-      ],
-      raw: true
-    });
-
-    const summary = {
-      totalAmount: parseFloat(stats.totalAmount) || 0,
-      totalEntries: parseInt(stats.totalEntries) || 0,
-      averageAmount: parseFloat(stats.averageAmount) || 0,
-      maxAmount: parseFloat(stats.maxAmount) || 0,
-      minAmount: parseFloat(stats.minAmount) || 0,
-      dateRange: { start, end }
-    };
-
-    res.json({
-      success: true,
-      data: summary,
-      message: 'Anamath entries statistics retrieved successfully'
-    });
-  } catch (error) {
-    console.error('Error getting anamath entries statistics:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to get anamath entries statistics'
-    });
-  }
-});
-
 // PUT /api/anamath-entries/:id/close - Close an anamath entry
 router.put('/:id/close', authenticate, authorizeEdit(), [
   param('id').isUUID().withMessage('Invalid anamath entry ID')
@@ -631,101 +726,6 @@ router.put('/:id/reopen', authenticate, authorizeEdit(), [
     });
   }
 });
-
-// GET /api/anamath-entries/closed - Get all closed anamath entries
-router.get('/closed/list', authenticate, [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 10000 }).withMessage('Limit must be between 1 and 10000'),
-  query('startDate').optional().isISO8601().withMessage('Invalid start date format'),
-  query('endDate').optional().isISO8601().withMessage('Invalid end date format'),
-  query('ledgerId').optional().isUUID().withMessage('Invalid ledger ID'),
-  query('search').optional()
-], handleValidationErrors, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10000; // Default to high limit for unlimited records
-    const offset = (page - 1) * limit;
-
-    const whereClause = {
-      isClosed: true // Only get closed entries
-    };
-
-    // Date range filter (for entry date)
-    if (req.query.startDate && req.query.endDate) {
-      whereClause.date = {
-        [Op.between]: [req.query.startDate, req.query.endDate]
-      };
-    } else if (req.query.startDate) {
-      whereClause.date = {
-        [Op.gte]: req.query.startDate
-      };
-    } else if (req.query.endDate) {
-      whereClause.date = {
-        [Op.lte]: req.query.endDate
-      };
-    }
-
-    // Ledger filter
-    if (req.query.ledgerId) {
-      whereClause.ledgerId = req.query.ledgerId;
-    }
-
-    // Search filter
-    if (req.query.search) {
-      whereClause[Op.or] = [
-        { remarks: { [Op.iLike]: `%${req.query.search}%` } },
-        { referenceNumber: { [Op.iLike]: `%${req.query.search}%` } }
-      ];
-    }
-
-    const { count, rows: closedEntries } = await AnamathEntry.findAndCountAll({
-      where: whereClause,
-      include: [
-        {
-          model: Ledger,
-          as: 'ledger',
-          attributes: ['id', 'name', 'ledgerType'],
-          required: false
-        },
-        {
-          model: User,
-          as: 'creator',
-          attributes: ['id', 'username', 'email']
-        },
-        {
-          model: User,
-          as: 'closedByUser',
-          attributes: ['id', 'username', 'email']
-        }
-      ],
-      order: [['closedAt', 'DESC'], ['date', 'DESC']],
-      limit,
-      offset
-    });
-
-    res.json({
-      success: true,
-      data: {
-        anamathEntries: closedEntries,
-        pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(count / limit),
-          totalItems: count,
-          itemsPerPage: limit
-        }
-      },
-      message: 'Closed anamath entries retrieved successfully'
-    });
-  } catch (error) {
-    console.error('Error getting closed anamath entries:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to get closed anamath entries'
-    });
-  }
-});
-
-
 
 // Approve anamath entry
 router.post('/:id/approve', authenticate, authorizeEdit(), [

@@ -15,6 +15,37 @@ export interface TransactionExportData {
   ledger?: string;
 }
 
+// Helper to safely parse dates that might be in dd/MM/yyyy format instead of ISO
+const parseSafeDate = (dateStr: string): Date | null => {
+  if (!dateStr) return null;
+
+  // Check if it's already a valid ISO date or parseable by standard Date
+  const standardDate = new Date(dateStr);
+  if (!isNaN(standardDate.getTime()) && !dateStr.includes('/')) {
+    return standardDate;
+  }
+
+  // If it's a typical Indian/European date like 05/03/2026 (dd/MM/yyyy)
+  if (dateStr.includes('/')) {
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      // Assuming dd/MM/yyyy based on app context
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // 0-indexed
+      let year = parseInt(parts[2], 10);
+
+      // Handle 2 digit years
+      if (year < 100) year += 2000;
+
+      const parsed = new Date(year, month, day);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+  }
+
+  // Fallback to standard parsing
+  return isNaN(standardDate.getTime()) ? null : standardDate;
+};
+
 export const exportToCSV = async (
   data: TransactionExportData[],
   startDate: string,
@@ -38,8 +69,8 @@ export const exportToCSV = async (
     // Safe date formatting for header
     let headerDate = '';
     try {
-      const dateObj = new Date(startDate);
-      if (!isNaN(dateObj.getTime())) {
+      const dateObj = parseSafeDate(startDate);
+      if (dateObj) {
         headerDate = format(dateObj, 'MMM dd, yyyy').toUpperCase();
       } else {
         headerDate = startDate || '';
@@ -64,8 +95,8 @@ export const exportToCSV = async (
       // Safe date formatting
       let formattedDate = '';
       try {
-        const dateObj = new Date(transaction.date);
-        if (!isNaN(dateObj.getTime())) {
+        const dateObj = parseSafeDate(transaction.date);
+        if (dateObj) {
           formattedDate = format(dateObj, 'dd/MM/yy');
         } else {
           formattedDate = transaction.date || '';
@@ -266,16 +297,16 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
       wsData.push(['ANAMATH OPENING RECORDS']);
       wsData.push(['']);
 
-      // Headers matching the screenshot
-      wsData.push(['S.No', 'Date', 'Anamath ID', 'Particulars', 'Amount']);
+      // Headers matching the frontend exactly
+      wsData.push(['SL', 'DATE', 'ID', 'LEDGER', 'AMOUNT', 'REMARKS', 'STATUS']);
 
       // Data rows
       data.forEach((entry, index) => {
         // Safe date formatting
         let formattedDate = '';
         try {
-          const dateObj = new Date(entry.date);
-          if (!isNaN(dateObj.getTime())) {
+          const dateObj = parseSafeDate(entry.date);
+          if (dateObj) {
             formattedDate = format(dateObj, 'dd/MM/yyyy');
           } else {
             formattedDate = entry.date || '';
@@ -285,11 +316,13 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
         }
 
         wsData.push([
-          index + 1,
-          formattedDate,
-          entry.transactionNumber ? `A${String(entry.transactionNumber).padStart(3, '0')}` : `A${String(entry.id).padStart(3, '0')}`, // Anamath ID
-          toTitleCase(entry.ledger?.name || 'General Entry'), // Particulars
-          formatIndianCurrency(entry.amount || 0) // Amount
+          index + 1, // SL
+          formattedDate, // DATE
+          entry.transactionNumber ? `A${String(entry.transactionNumber).padStart(3, '0')}` : `A${String(entry.id).padStart(3, '0')}`, // ID
+          toTitleCase(entry.ledger?.name || 'General Entry'), // LEDGER
+          formatIndianCurrency(entry.amount || 0), // AMOUNT
+          toTitleCase(entry.remarks || '-'), // REMARKS
+          entry.isClosed ? 'CLOSED' : (entry as any).status ? (entry as any).status.toUpperCase() : 'APPROVED' // STATUS
         ]);
       });
 
@@ -298,11 +331,13 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
 
       // Set column widths for perfect display
       ws['!cols'] = [
-        { wch: 8 },   // S.No
-        { wch: 12 },  // Date
-        { wch: 15 },  // Anamath ID
-        { wch: 25 },  // Particulars 
-        { wch: 15 }   // Amount
+        { wch: 6 },   // SL
+        { wch: 12 },  // DATE
+        { wch: 10 },  // ID
+        { wch: 20 },  // LEDGER
+        { wch: 15 },  // AMOUNT
+        { wch: 25 },  // REMARKS
+        { wch: 12 }   // STATUS
       ];
 
       // Add styles
@@ -310,7 +345,7 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
 
       // Style all data rows for proper alignment
       for (let row = 5; row < 5 + data.length; row++) {
-        for (let col = 0; col <= 4; col++) {
+        for (let col = 0; col <= 6; col++) {
           const cellAddr = XLSX.utils.encode_cell({ r: row, c: col });
           if (ws[cellAddr]) {
             let alignment = { horizontal: "center", vertical: "center" };
@@ -319,8 +354,8 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
             if (col === 4) {
               alignment = { horizontal: "right", vertical: "center" };
             }
-            // Particulars column (index 3) should be left-aligned  
-            else if (col === 3) {
+            // Ledger and Remarks column (index 3 and 5) should be left-aligned  
+            else if (col === 3 || col === 5) {
               alignment = { horizontal: "left", vertical: "center" };
             }
 
@@ -341,8 +376,8 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
       // Add styles for anamath headers only
       const anamathHeaderRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
 
-      // Style headers for anamath export (5 columns)
-      for (let col = 0; col <= 4; col++) {
+      // Style headers for anamath export (7 columns)
+      for (let col = 0; col <= 6; col++) {
         const headerCell = XLSX.utils.encode_cell({ r: 4, c: col });
         if (ws[headerCell]) {
           ws[headerCell].s = {

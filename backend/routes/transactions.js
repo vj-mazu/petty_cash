@@ -18,7 +18,7 @@ const {
 } = require('../controllers/transactionController');
 const { streamTransactions, getFastCount } = require('../controllers/streamController');
 const { authenticate, authorize, authorizeAdminOnly, authorizeCreate, authorizeEdit, authorizeDelete, authorizeView, authorizeExport } = require('../middleware/auth');
-// const { transactionLimiter } = require('../middleware/rateLimiting'); // Disabled for unlimited access
+const { transactionLimiter } = require('../middleware/rateLimiting');
 const { handleValidation } = require('../middleware/errorHandler');
 const {
   validateCreateTransaction,
@@ -78,6 +78,7 @@ router.get('/fast-count',
 // CRUD operations
 router.post('/',
   authorizeCreate(), // Staff + Admin can create transactions
+  transactionLimiter,
   validateCreateTransaction,
   handleValidation,
   createTransaction
@@ -100,6 +101,7 @@ router.get('/:id',
 
 router.put('/:id',
   authorizeEdit(), // Admin1, Admin2, Staff can edit transactions
+  transactionLimiter,
   validateUpdateTransaction,
   handleValidation,
   updateTransaction
@@ -107,6 +109,7 @@ router.put('/:id',
 
 router.delete('/:id',
   authorizeDelete(), // Only Admin1 can delete transactions
+  transactionLimiter,
   validateDeleteTransaction,
   handleValidation,
   deleteTransaction

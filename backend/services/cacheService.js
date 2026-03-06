@@ -7,10 +7,10 @@ const NodeCache = require('node-cache');
 
 class CacheService {
   constructor() {
-    // Transaction cache - 2 minute TTL (fast-changing data)
+    // Transaction cache - 30 second TTL (fast-changing data)
     this.transactionCache = new NodeCache({
-      stdTTL: 120, // 2 minutes
-      checkperiod: 30, // Check for expired entries every 30 seconds
+      stdTTL: 30, // 30 seconds
+      checkperiod: 15, // Check for expired entries every 15 seconds
       useClones: false, // Don't clone for better performance
       maxKeys: 10000 // Maximum 10k cached entries
     });
@@ -132,8 +132,10 @@ class CacheService {
    * Invalidate all transaction caches (call after create/update/delete)
    */
   invalidateTransactions() {
-    const deletedCount = this.transactionCache.flushAll();
-    this.stats.deletes += deletedCount;
+    // QA AUDIT FIX: Stop aggressive flushAll() to prevent cache stampedes on high write nodes
+    // The short 30s TTL on this.transactionCache natively ensures fresh data soon
+    // this.transactionCache.flushAll(); // DISABLED
+    return;
   }
 
   /**

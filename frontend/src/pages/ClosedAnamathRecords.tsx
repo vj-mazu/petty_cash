@@ -18,6 +18,8 @@ const ClosedAnamathRecords: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [closedRecords, setClosedRecords] = useState<AnamathEntry[]>([]);
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loadingLedgers, setLoadingLedgers] = useState<boolean>(true);
 
@@ -41,23 +43,28 @@ const ClosedAnamathRecords: React.FC = () => {
   const fetchClosedRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const params: {
-        limit?: number;
-      } = { 
-        limit: 100
+      const params: any = {
+        page: currentPage,
+        limit: 20
       };
-      
+
       const response = await anamathApi.getClosed(params);
-      
+
       if (response.success) {
         console.log('Closed Records API Response:', response);
         const recordsData = response.data.anamathEntries || [];
         console.log('Extracted Closed Records:', recordsData);
-        
+
         setClosedRecords(recordsData);
+        if (response.data.pagination) {
+          setTotalPages(response.data.pagination.pages || 1);
+        } else {
+          setTotalPages(1);
+        }
       } else {
         console.error('Failed to load closed Anamath records');
         setClosedRecords([]);
+        setTotalPages(1);
         toast.error('Failed to load closed Anamath records');
       }
     } catch (error) {
@@ -75,12 +82,12 @@ const ClosedAnamathRecords: React.FC = () => {
 
   useEffect(() => {
     fetchClosedRecords();
-  }, [fetchClosedRecords]);
+  }, [fetchClosedRecords, currentPage]);
 
   const handleExport = async (type: 'pdf' | 'csv') => {
     if (type === 'pdf') {
       console.log('🔍 ClosedAnamathRecords.tsx: Starting PDF export with', closedRecords.length, 'records');
-      
+
       // Check if there are any closed records
       if (closedRecords.length === 0) {
         console.warn('⚠️ ClosedAnamathRecords.tsx: No closed records available');
@@ -96,7 +103,7 @@ const ClosedAnamathRecords: React.FC = () => {
           ledger: record.ledger?.name,
           closedAt: record.closedAt
         });
-        
+
         return {
           serialNo: index + 1,
           date: record.date,
@@ -113,7 +120,7 @@ const ClosedAnamathRecords: React.FC = () => {
       });
 
       console.log('📊 ClosedAnamathRecords.tsx: PDF Data prepared:', pdfData.length, 'entries');
-      
+
       try {
         console.log('🔄 ClosedAnamathRecords.tsx: Converting to PDF entries...');
         // Convert closed records to PDF format
@@ -124,7 +131,7 @@ const ClosedAnamathRecords: React.FC = () => {
           remarks: record.remarks,
           ledger: record.ledger,
           referenceNumber: record.referenceNumber,
-          createdBy: typeof record.createdBy === 'string' 
+          createdBy: typeof record.createdBy === 'string'
             ? { username: record.createdBy }
             : record.createdBy,
           transactionNumber: record.transactionNumber,
@@ -132,23 +139,23 @@ const ClosedAnamathRecords: React.FC = () => {
           closedAt: record.closedAt,
           isClosed: true
         }));
-        
+
         // Calculate date range
         const dateRange = closedRecords.length > 0 ? {
           start: format(parseISO(closedRecords[closedRecords.length - 1].date), 'dd/MM/yyyy'),
           end: format(parseISO(closedRecords[0].date), 'dd/MM/yyyy')
         } : undefined;
-        
+
         console.log('📊 ClosedAnamathRecords.tsx: Date range:', dateRange);
         console.log('🔄 ClosedAnamathRecords.tsx: Calling generateClosedAnamathPDF...');
-        
+
         const success = await generateClosedAnamathPDF(pdfEntries, {
           companyName: 'MRN INDUSTRIES',
           dateRange,
           includeCreatedBy: true,
           includeReference: true
         });
-        
+
         if (success) {
           console.log('✅ ClosedAnamathRecords.tsx: PDF export completed successfully');
           toast.success('Closed Anamath records PDF exported successfully!');
@@ -171,7 +178,7 @@ const ClosedAnamathRecords: React.FC = () => {
         'Amount': formatIndianCurrency(record.amount), // Use formatIndianCurrency for proper Indian format
         'Remarks': toTitleCase(record.remarks || '-')
       }));
-      
+
       try {
         // Use the new export function for closed records
         await exportClosedRecordsToXlsx(csvData, 'Closed_Anamath_Records');
@@ -273,8 +280,8 @@ const ClosedAnamathRecords: React.FC = () => {
                 closedRecords.map((record, index) => {
                   const ledger = record.ledger || (record.ledgerId ? ledgers.find(l => l.id === record.ledgerId) : null);
                   return (
-                    <motion.tr 
-                      key={record.id} 
+                    <motion.tr
+                      key={record.id}
                       className="hover:bg-gray-50"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -334,6 +341,29 @@ const ClosedAnamathRecords: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Pagination View */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-4">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600 font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Bottom summary removed - Total amount now shown only in blue box at top */}
     </div>

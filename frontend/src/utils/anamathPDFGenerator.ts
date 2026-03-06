@@ -154,7 +154,7 @@ export const generateAnamathPDF = (
         1: { halign: 'center', cellWidth: 22 },
         2: { halign: 'center', cellWidth: 14 },
         3: { halign: 'left', cellWidth: 38 },
-        4: { halign: 'right', cellWidth: 26 },
+        4: { halign: 'left', cellWidth: 26 },
         5: { halign: 'left' }
       },
       alternateRowStyles: { fillColor: [250, 250, 255] },

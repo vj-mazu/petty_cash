@@ -629,9 +629,12 @@ const Transactions: React.FC = () => {
         } as TransactionExportData;
       });
 
+      // ✅ FIX: Use ISO format (yyyy-MM-dd) for exports, but keep formattedDate for other potential uses
       const formattedDate = format(new Date(selectedDate), 'dd/MM/yyyy');
-      const startDate = formattedDate;
-      const endDate = formattedDate;
+
+      // Pass the standard ISO date (yyyy-MM-dd) to export processing to avoid "05/03" vs "03/05" bugs
+      const exportStartDate = selectedDate;
+      const exportEndDate = selectedDate;
 
       // ✅ FIX: Use the SAME opening balance calculation as the UI display
       // Calculate opening balance for the selected date using the same logic as UI
@@ -674,8 +677,8 @@ const Transactions: React.FC = () => {
         // CSV export
         await exportToCSV(
           exportData,
-          startDate,
-          endDate,
+          exportStartDate,
+          exportEndDate,
           openingBalance,
           dailyDebit,
           dailyCredit
@@ -703,8 +706,8 @@ const Transactions: React.FC = () => {
         const pdfSuccess = generateTransactionPDF(pdfTransactions, {
           companyName: 'PETTY CASH',
           dateRange: {
-            start: startDate,
-            end: endDate
+            start: formattedDate,
+            end: formattedDate
           },
           openingBalance: openingBalance,
           includeRunningBalance: true,
@@ -1078,7 +1081,36 @@ const Transactions: React.FC = () => {
     })
     : transactions;
 
-  console.log('DEBUG: Filtered transactions:', filteredTransactions);
+  console.log('DEBUG: Filtered transactions after TX search:', filteredTransactions);
+
+  // Apply UI Filters for Ledger, Type, Date
+  filteredTransactions = filteredTransactions.filter(t => {
+    // Ledger Filter
+    if (selectedLedger !== 'all' && t.ledgerId !== selectedLedger) return false;
+
+    // Type Filter (Debit/Credit)
+    if (selectedType !== 'all' && t.type !== selectedType) return false;
+
+    // Date Range Filter
+    const transactionDate = new Date(t.date);
+    transactionDate.setHours(0, 0, 0, 0); // Normalize time
+
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      if (transactionDate < start) return false;
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(0, 0, 0, 0);
+      if (transactionDate > end) return false;
+    }
+
+    return true;
+  });
+
+  console.log('DEBUG: Filtered transactions after all UI filters:', filteredTransactions);
 
 
 
@@ -1173,6 +1205,7 @@ const Transactions: React.FC = () => {
 
   // Determine if there are no transactions to display after all filters
   const noTransactionsToDisplay = filteredTransactions.length === 0;
+  const hasActiveFilters = Boolean(startDate || endDate || selectedLedger !== 'all' || selectedType !== 'all' || txNumberFilter);
 
   // If no transactions are found after filtering, and not currently loading, show empty table
   if (noTransactionsToDisplay && !loading) {
@@ -1202,7 +1235,7 @@ const Transactions: React.FC = () => {
                 <span className="text-blue-600 mr-2">NO TRANSACTIONS FOUND</span>
               </h3>
               <p className="text-sm text-gray-600 mt-1">
-                {txNumberFilter ? `No results for search: "${txNumberFilter}"` : `Opening Balance: ${formatCurrency(todayOpeningBalance)}`}
+                {hasActiveFilters ? "No results found for active filters." : `Opening Balance: ${formatCurrency(todayOpeningBalance)}`}
               </p>
             </div>
           </div>
@@ -1228,7 +1261,7 @@ const Transactions: React.FC = () => {
                       <div className="text-4xl text-gray-300 mb-2">📋</div>
                       <p className="text-lg font-medium">No transactions to display</p>
                       <p className="text-sm">
-                        {txNumberFilter ? 'Try adjusting your search filters' : 'Start by creating your first transaction'}
+                        {hasActiveFilters ? 'Try adjusting or clearing your filters' : 'Start by creating your first transaction'}
                       </p>
 
                       {/* Show helpful action buttons */}
@@ -1243,7 +1276,7 @@ const Transactions: React.FC = () => {
                           Add New Transaction
                         </button>
 
-                        {transactions.length > 0 && !showAllTransactions && (
+                        {transactions.length > 0 && !showAllTransactions && !hasActiveFilters && (
                           <button
                             onClick={() => setShowAllTransactions(true)}
                             className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center font-medium"
@@ -1256,7 +1289,7 @@ const Transactions: React.FC = () => {
                           </button>
                         )}
 
-                        {txNumberFilter && (
+                        {hasActiveFilters && (
                           <button
                             onClick={clearFilters}
                             className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center font-medium"
@@ -1548,14 +1581,11 @@ const Transactions: React.FC = () => {
           // - WITH FILTERS: Show ALL matching dates/transactions at once
           <>
             {(() => {
-              const hasFilters = startDate || endDate || selectedLedger !== 'all' || selectedType !== 'all' || txNumberFilter;
               const sortedDates = Object.entries(transactionsByDate)
                 .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime());
 
-              // If filters applied, show ALL dates; otherwise paginate
-              const datesToShow = hasFilters
-                ? sortedDates
-                : sortedDates.slice((currentDatePage - 1) * datesPerPage, currentDatePage * datesPerPage);
+              // ✅ FIX: Paginate all dates to prevent DOM freezing on large filters
+              const datesToShow = sortedDates.slice((currentDatePage - 1) * datesPerPage, currentDatePage * datesPerPage);
 
               return datesToShow.map(([date, dailyTransactions]) => {
                 // Sort transactions by transaction number
@@ -1720,9 +1750,9 @@ const Transactions: React.FC = () => {
                             <th className="border border-gray-400 px-1.5 py-1 text-center w-20 bg-blue-100 font-bold text-xs">DATE</th>
                             <th className="border border-gray-400 px-1.5 py-1 text-center w-14 bg-indigo-100 font-bold text-xs">TX #</th>
                             <th className="border border-gray-400 px-1.5 py-1 text-center w-16 bg-blue-100 font-bold text-xs">TYPE</th>
-                            <th className="border border-gray-400 px-1.5 py-1 text-center bg-green-100 font-bold text-xs">AMOUNT</th>
-                            <th className="border border-gray-400 px-1.5 py-1 text-center bg-yellow-100 font-bold text-xs">LEDGER</th>
-                            <th className="border border-gray-400 px-1.5 py-1 text-center bg-blue-50 font-bold text-xs">REMARKS</th>
+                            <th className="border border-gray-400 px-1.5 py-1 text-left bg-green-100 font-bold text-xs">AMOUNT</th>
+                            <th className="border border-gray-400 px-1.5 py-1 text-left bg-yellow-100 font-bold text-xs">LEDGER</th>
+                            <th className="border border-gray-400 px-1.5 py-1 text-left bg-blue-50 font-bold text-xs">REMARKS</th>
                             <th className="border border-gray-400 px-1.5 py-1 text-center w-20 bg-orange-100 font-bold text-xs">STATUS</th>
                             <th className="border border-gray-400 px-1.5 py-1 text-center w-24 bg-gray-200 font-bold text-xs">ACTIONS</th>
                           </tr>
@@ -1757,7 +1787,7 @@ const Transactions: React.FC = () => {
                                     {isCredit ? 'CRT' : 'DBT'}
                                   </span>
                                 </td>
-                                <td className="border border-gray-300 px-1.5 py-1 text-center text-xs font-medium">
+                                <td className="border border-gray-300 px-1.5 py-1 text-left text-xs font-medium">
                                   <span className={isCredit ? 'text-green-700' : 'text-red-700'}>
                                     {formatCurrency(amount)}
                                     {transaction.reference === 'A' && (
@@ -1765,10 +1795,10 @@ const Transactions: React.FC = () => {
                                     )}
                                   </span>
                                 </td>
-                                <td className="border border-gray-300 px-1.5 py-1 text-center text-xs">
+                                <td className="border border-gray-300 px-1.5 py-1 text-left text-xs">
                                   {transaction.ledger?.name || '-'}
                                 </td>
-                                <td className="border border-gray-300 px-1.5 py-1 text-center text-xs min-w-[80px]">
+                                <td className="border border-gray-300 px-1.5 py-1 text-left text-xs min-w-[80px]">
                                   {transaction.remarks || ''}
                                 </td>
                                 <td className="border border-gray-300 px-1.5 py-1 text-center text-xs">
@@ -1879,13 +1909,12 @@ const Transactions: React.FC = () => {
               });
             })()}
 
-            {/* ✅ Date-Based Pagination Controls - Only show when NO filters applied */}
+            {/* ✅ Date-Based Pagination Controls */}
             {(() => {
-              const hasFilters = startDate || endDate || selectedLedger !== 'all' || selectedType !== 'all' || txNumberFilter;
               const totalDates = Object.keys(transactionsByDate).length;
 
-              // Show pagination only when no filters and multiple dates exist
-              if (hasFilters || totalDates <= 1) return null;
+              // Show pagination only when multiple dates exist
+              if (totalDates <= 1) return null;
 
               return (
                 <div className="mt-6 flex flex-col items-center space-y-3">

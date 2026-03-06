@@ -20,6 +20,8 @@ const Anamath: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [records, setRecords] = useState<AnamathEntry[]>([]);
   const [filteredRecords, setFilteredRecords] = useState<AnamathEntry[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loadingLedgers, setLoadingLedgers] = useState<boolean>(true);
@@ -59,7 +61,10 @@ const Anamath: React.FC = () => {
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const params = { limit: 50 };
+      const params: any = {
+        page: currentPage,
+        limit: 20
+      };
       const response = await anamathApi.getAll(params);
 
       if (response.success) {
@@ -82,6 +87,12 @@ const Anamath: React.FC = () => {
         const openRecords = recordsData.filter(record => !record.isClosed);
         setRecords(openRecords);
         setFilteredRecords(openRecords); // Initialize filtered records
+
+        if (response.data.pagination) {
+          setTotalPages(response.data.pagination.pages || 1);
+        } else {
+          setTotalPages(1);
+        }
       } else {
         console.error('Failed to load Anamath records');
         setRecords([]);
@@ -159,7 +170,7 @@ const Anamath: React.FC = () => {
 
   useEffect(() => {
     fetchRecords();
-  }, [fetchRecords]);
+  }, [fetchRecords, currentPage]);
 
   // Handle refresh when coming back from CreateAnamath
   useEffect(() => {
@@ -271,13 +282,17 @@ const Anamath: React.FC = () => {
 
   const onConfirmClose = async () => {
     if (recordToClose) {
+      // Optimistically remove from UI immediately to avoid caching delay
+      setRecords(prev => prev.filter(r => r.id !== recordToClose));
+      setFilteredRecords(prev => prev.filter(r => r.id !== recordToClose));
+
       try {
         console.log('Attempting to close record:', recordToClose);
         const response = await anamathApi.close(recordToClose);
         if (response.success) {
           console.log('Record closed successfully');
           toast.success('Record closed successfully');
-          fetchRecords(); // Refresh to remove the closed record from the list
+          // No need to fetchRecords here since we optimistically updated and this endpoint may be cached
         } else {
           console.error('Failed to close record:', response);
           toast.error('Failed to close record');
@@ -456,9 +471,9 @@ const Anamath: React.FC = () => {
               <th className="border border-gray-400 px-1.5 py-1 text-center w-10 bg-gray-100 font-bold text-xs">SL</th>
               <th className="border border-gray-400 px-1.5 py-1 text-center w-24 bg-blue-100 font-bold text-xs">DATE</th>
               <th className="border border-gray-400 px-1.5 py-1 text-center w-16 bg-indigo-100 font-bold text-xs">ID</th>
-              <th className="border border-gray-400 px-1.5 py-1 text-center bg-yellow-100 font-bold text-xs">LEDGER</th>
-              <th className="border border-gray-400 px-1.5 py-1 text-center bg-green-100 font-bold text-xs">AMOUNT</th>
-              <th className="border border-gray-400 px-1.5 py-1 text-center bg-blue-50 font-bold text-xs">REMARKS</th>
+              <th className="border border-gray-400 px-1.5 py-1 text-left bg-yellow-100 font-bold text-xs">LEDGER</th>
+              <th className="border border-gray-400 px-1.5 py-1 text-left bg-green-100 font-bold text-xs">AMOUNT</th>
+              <th className="border border-gray-400 px-1.5 py-1 text-left bg-blue-50 font-bold text-xs">REMARKS</th>
               <th className="border border-gray-400 px-1.5 py-1 text-center w-20 bg-orange-100 font-bold text-xs">STATUS</th>
               <th className="border border-gray-400 px-1.5 py-1 text-center w-28 bg-gray-200 font-bold text-xs">ACTIONS</th>
             </tr>
@@ -479,13 +494,13 @@ const Anamath: React.FC = () => {
                     <td className="border border-gray-300 px-1.5 py-1 text-center text-xs font-mono font-medium">
                       {record.transactionNumber ? `A${String(record.transactionNumber).padStart(3, '0')}` : '—'}
                     </td>
-                    <td className="border border-gray-300 px-1.5 py-1 text-center text-xs">
+                    <td className="border border-gray-300 px-1.5 py-1 text-left text-xs">
                       {toTitleCase(ledger?.name || 'General Entry')}
                     </td>
-                    <td className="border border-gray-300 px-1.5 py-1 text-center text-xs font-medium text-amber-700">
+                    <td className="border border-gray-300 px-1.5 py-1 text-left text-xs font-medium text-amber-700">
                       {formatIndianCurrency(record.amount)}
                     </td>
-                    <td className="border border-gray-300 px-1.5 py-1 text-center text-xs min-w-[80px]">
+                    <td className="border border-gray-300 px-1.5 py-1 text-left text-xs min-w-[80px]">
                       {toTitleCase(record.remarks || '-')}
                     </td>
                     <td className="border border-gray-300 px-1.5 py-1 text-center text-xs">
@@ -548,7 +563,9 @@ const Anamath: React.FC = () => {
                   <div className="text-gray-400">
                     <BookOpen className="mx-auto h-10 w-10 text-gray-300" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No records found</h3>
-                    <p className="mt-1 text-xs text-gray-500">Create a new Anamath entry to get started.</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {(searchTerm || selectedLedger || dateFilter) ? 'No records found matching your filters.' : 'Create a new Anamath entry to get started.'}
+                    </p>
                   </div>
                 </td>
               </tr>
@@ -556,6 +573,29 @@ const Anamath: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination View */}
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center space-x-2 mt-4">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600 font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={isModalOpen}
