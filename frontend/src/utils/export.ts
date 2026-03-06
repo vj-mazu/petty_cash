@@ -2,7 +2,7 @@ import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { AnamathEntry } from '../services/api';
-import { formatIndianCurrency, formatExportAmount } from './indianNumberFormat';
+import { formatIndianCurrency } from './indianNumberFormat';
 import { toTitleCase } from './textUtils';
 
 export interface TransactionExportData {
@@ -341,8 +341,6 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
       ];
 
       // Add styles
-      const anamathRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-
       // Style all data rows for proper alignment
       for (let row = 5; row < 5 + data.length; row++) {
         for (let col = 0; col <= 6; col++) {
@@ -374,8 +372,6 @@ export const exportToXlsx = (data: AnamathEntry[], fileName: string) => {
       }
 
       // Add styles for anamath headers only
-      const anamathHeaderRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-
       // Style headers for anamath export (7 columns)
       for (let col = 0; col <= 6; col++) {
         const headerCell = XLSX.utils.encode_cell({ r: 4, c: col });
@@ -473,8 +469,6 @@ export const exportClosedRecordsToXlsx = (data: any[], fileName: string) => {
       ];
 
       // Add styles and proper alignment
-      const closedRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-
       // Style all data rows for proper alignment
       for (let row = 5; row < 5 + data.length; row++) {
         for (let col = 0; col <= 6; col++) {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  RefreshCw, 
-  TrendingUp, 
+import { motion } from 'framer-motion';
+import {
+  Search,
+  Filter,
+  RefreshCw,
+  TrendingUp,
   TrendingDown,
   Calendar,
   DollarSign,
@@ -98,7 +98,7 @@ const TransactionRow = memo<TransactionRowProps>(({ transaction, index }) => {
   // Determine transaction type based on amounts
   const transactionType = transaction.creditAmount > 0 ? 'credit' : 'debit';
   const amount = transaction.creditAmount > 0 ? transaction.creditAmount : transaction.debitAmount;
-  
+
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'credit': return 'text-green-600 bg-green-50';
@@ -127,7 +127,7 @@ const TransactionRow = memo<TransactionRowProps>(({ transaction, index }) => {
         <div className={`p-2 rounded-lg ${getTypeColor(transactionType)}`}>
           {getTypeIcon(transactionType)}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-900 truncate">
@@ -137,11 +137,11 @@ const TransactionRow = memo<TransactionRowProps>(({ transaction, index }) => {
               #{transaction.transaction_number || transaction.id.slice(0, 8)}
             </span>
           </div>
-          
+
           <p className="text-sm text-gray-500 truncate mt-1">
             {transaction.description || transaction.remarks || 'No description'}
           </p>
-          
+
           <div className="flex items-center space-x-4 mt-2">
             <span className="text-xs text-gray-400 flex items-center">
               <Calendar className="w-3 h-3 mr-1" />
@@ -150,14 +150,13 @@ const TransactionRow = memo<TransactionRowProps>(({ transaction, index }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="text-right">
-        <div className={`text-lg font-semibold ${
-          transactionType === 'credit' ? 'text-green-600' : 'text-red-600'
-        }`}>
+        <div className={`text-lg font-semibold ${transactionType === 'credit' ? 'text-green-600' : 'text-red-600'
+          }`}>
           {transactionType === 'credit' ? '+' : '-'}{formatCurrency(amount)}
         </div>
-        
+
         <div className="text-xs text-gray-400 mt-1">
           {formatDateTime(transaction.createdAt)}
         </div>
@@ -175,7 +174,7 @@ const PerformanceMonitor = memo<PerformanceMonitorProps>(({ metrics, recordCount
           <Activity className="w-4 h-4 mr-2" />
           Performance Metrics
         </h4>
-        
+
         <div className="flex items-center space-x-4 text-xs text-blue-600">
           <span>Render: {metrics.renderTime.toFixed(1)}ms</span>
           <span>API: {metrics.apiResponseTime.toFixed(1)}ms</span>
@@ -267,8 +266,6 @@ const HighPerformanceTransactionList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedType, setSelectedType] = useState('');
   const [performanceMode, setPerformanceMode] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -285,9 +282,9 @@ const HighPerformanceTransactionList: React.FC = () => {
   const fetchTransactions = useCallback(async (pageNum = 1, search = '', filters = {}) => {
     setLoading(true);
     setError(null);
-    
+
     const startTime = performance.now();
-    
+
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams({
@@ -309,7 +306,7 @@ const HighPerformanceTransactionList: React.FC = () => {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         if (pageNum === 1) {
           setTransactions(data.data || data.transactions || []);
@@ -321,10 +318,10 @@ const HighPerformanceTransactionList: React.FC = () => {
       } else {
         throw new Error(data.message || 'Failed to fetch transactions');
       }
-      
+
       const endTime = performance.now();
       setMetrics(prev => ({ ...prev, apiResponseTime: endTime - startTime }));
-      
+
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setError((error as Error).message);
@@ -336,7 +333,7 @@ const HighPerformanceTransactionList: React.FC = () => {
   // Fetch summary
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
-    
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/transactions/summary', {
@@ -396,7 +393,7 @@ const HighPerformanceTransactionList: React.FC = () => {
       const renderTime = performance.now() - startTime;
       setMetrics(prev => ({ ...prev, renderTime }));
     }, 0);
-    
+
     return () => clearTimeout(timeoutId);
   }, [transactions]);
 
@@ -445,7 +442,7 @@ const HighPerformanceTransactionList: React.FC = () => {
             Optimized for handling large datasets efficiently
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <label className="flex items-center">
             <input
@@ -456,7 +453,7 @@ const HighPerformanceTransactionList: React.FC = () => {
             />
             <span className="text-sm text-gray-600">Performance Mode</span>
           </label>
-          
+
           <button
             onClick={refresh}
             disabled={loading}
@@ -469,9 +466,9 @@ const HighPerformanceTransactionList: React.FC = () => {
 
       {/* Performance Monitor */}
       {performanceMode && (
-        <PerformanceMonitor 
-          metrics={metrics} 
-          recordCount={totalRecords} 
+        <PerformanceMonitor
+          metrics={metrics}
+          recordCount={totalRecords}
         />
       )}
 
@@ -491,7 +488,7 @@ const HighPerformanceTransactionList: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center"
@@ -509,7 +506,7 @@ const HighPerformanceTransactionList: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Transactions ({formatNumber(totalRecords)})
             </h2>
-            
+
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <span>Page {page} of {totalPages}</span>
               {loading && <LoadingSpinner />}
@@ -526,7 +523,7 @@ const HighPerformanceTransactionList: React.FC = () => {
             />
           ))}
         </div>
-        
+
         {/* Load More Button */}
         {page < totalPages && (
           <div className="p-4 text-center border-t border-gray-200">
@@ -539,7 +536,7 @@ const HighPerformanceTransactionList: React.FC = () => {
             </button>
           </div>
         )}
-        
+
         {/* End of data indicator */}
         {page >= totalPages && transactions.length > 0 && (
           <div className="p-4 text-center text-gray-500 border-t border-gray-200">

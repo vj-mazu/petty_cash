@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { authApi } from '../services/api';
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Lock, 
-  Save, 
-  Eye, 
+import {
+  User,
+  Lock,
+  Save,
+  Eye,
   EyeOff,
   Database,
   Shield,
@@ -36,7 +35,7 @@ const passwordSchema = yup.object().shape({
 }).required();
 
 const Settings: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -91,7 +90,7 @@ const Settings: React.FC = () => {
             <User className="w-5 h-5 mr-2" />
             👤 User Profile
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex items-center">
               <img
@@ -147,9 +146,8 @@ const Settings: React.FC = () => {
                 <input
                   {...register('currentPassword')}
                   type={showCurrentPassword ? 'text' : 'password'}
-                  className={`input-field pr-10 ${
-                    errors.currentPassword ? 'border-red-300' : 'border-green-300'
-                  }`}
+                  className={`input-field pr-10 ${errors.currentPassword ? 'border-red-300' : 'border-green-300'
+                    }`}
                   placeholder="Enter current password"
                 />
                 <button
@@ -178,9 +176,8 @@ const Settings: React.FC = () => {
                 <input
                   {...register('newPassword')}
                   type={showNewPassword ? 'text' : 'password'}
-                  className={`input-field pr-10 ${
-                    errors.newPassword ? 'border-red-300' : 'border-green-300'
-                  }`}
+                  className={`input-field pr-10 ${errors.newPassword ? 'border-red-300' : 'border-green-300'
+                    }`}
                   placeholder="Enter new password"
                 />
                 <button
@@ -209,9 +206,8 @@ const Settings: React.FC = () => {
                 <input
                   {...register('confirmPassword')}
                   type={showConfirmPassword ? 'text' : 'password'}
-                  className={`input-field pr-10 ${
-                    errors.confirmPassword ? 'border-red-300' : 'border-green-300'
-                  }`}
+                  className={`input-field pr-10 ${errors.confirmPassword ? 'border-red-300' : 'border-green-300'
+                    }`}
                   placeholder="Confirm new password"
                 />
                 <button
@@ -260,7 +256,7 @@ const Settings: React.FC = () => {
           <Database className="w-5 h-5 mr-2" />
           📊 System Information
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white bg-opacity-60 rounded-lg p-4">
             <h4 className="font-semibold text-purple-800 mb-2">🏗️ Application</h4>

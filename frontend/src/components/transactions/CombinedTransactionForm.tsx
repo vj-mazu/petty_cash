@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import { transactionApi, anamathApi, ledgerApi, Ledger, CreateTransactionData, CreateAnamathEntryData } from '../../services/api';
-import { formatIndianCurrency, formatDisplayAmount } from '../../utils/indianNumberFormat';
+import { transactionApi, ledgerApi, Ledger, CreateTransactionData } from '../../services/api';
+import { formatIndianCurrency } from '../../utils/indianNumberFormat';
 import IndianNumberInput from '../IndianNumberInput';
 import {
   ArrowLeft,
@@ -14,8 +14,7 @@ import {
   Calculator,
   AlertTriangle,
   Info,
-  Plus,
-  Minus
+  Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
@@ -27,7 +26,7 @@ interface CombinedFormData {
   amount: number;
   date: string;
   description?: string;
-  
+
   // Anamath entry fields
   anamathAmount: number;
   anamathRemarks: string;
@@ -38,12 +37,12 @@ const CombinedTransactionForm: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const transactionType = searchParams.get('type') as 'credit' | 'debit' || 'credit';
-  
+
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [loadingLedgers, setLoadingLedgers] = useState(true);
   const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(null);
   const [selectedAnamathLedger, setSelectedAnamathLedger] = useState<Ledger | null>(null);
-  
+
   const {
     register,
     handleSubmit,
@@ -58,7 +57,7 @@ const CombinedTransactionForm: React.FC = () => {
       anamathRemarks: ''
     }
   });
-  
+
   const watchedLedgerId = watch('ledgerId');
   const watchedAmount = watch('amount') || 0;
   const watchedAnamathLedgerId = watch('anamathLedgerId');
@@ -175,34 +174,28 @@ const CombinedTransactionForm: React.FC = () => {
     return formatIndianCurrency(amount);
   };
 
-  const calculateNewBalance = (currentBalance: number, amount: number) => {
-    return transactionType === 'credit' 
-      ? currentBalance + amount 
-      : currentBalance - amount;
-  };
-
   const isInsufficientBalance = (): boolean => {
     return transactionType === 'debit' && selectedLedger ? selectedLedger.currentBalance < watchedAmount : false;
   };
 
   const getColorScheme = () => {
-    return transactionType === 'credit' 
+    return transactionType === 'credit'
       ? {
-          primary: 'emerald',
-          bg: 'from-emerald-50 to-green-50',
-          border: 'border-emerald-200',
-          text: 'text-emerald-900',
-          icon: TrendingUp,
-          sign: '+'
-        }
+        primary: 'emerald',
+        bg: 'from-emerald-50 to-green-50',
+        border: 'border-emerald-200',
+        text: 'text-emerald-900',
+        icon: TrendingUp,
+        sign: '+'
+      }
       : {
-          primary: 'red',
-          bg: 'from-red-50 to-rose-50',
-          border: 'border-red-200',
-          text: 'text-red-900',
-          icon: TrendingDown,
-          sign: '-'
-        };
+        primary: 'red',
+        bg: 'from-red-50 to-rose-50',
+        border: 'border-red-200',
+        text: 'text-red-900',
+        icon: TrendingDown,
+        sign: '-'
+      };
   };
 
   if (loadingLedgers) {
@@ -269,7 +262,7 @@ const CombinedTransactionForm: React.FC = () => {
               <div>
                 <h4 className="text-sm font-medium text-blue-900 mb-1">Combined Transaction</h4>
                 <p className="text-sm text-blue-700">
-                  This will create two separate entries: one {transactionType} transaction that affects the ledger balance, 
+                  This will create two separate entries: one {transactionType} transaction that affects the ledger balance,
                   and one anamath entry for record-keeping that doesn't affect the balance. Both entries will share the same reference number.
                 </p>
               </div>
@@ -327,16 +320,15 @@ const CombinedTransactionForm: React.FC = () => {
                         register('amount').onChange({ target: { value: numValue } });
                       }}
                       showDecimals={true}
-                      className={`input-field pl-10 text-lg font-semibold border-${colorScheme.primary}-300 focus:border-${colorScheme.primary}-500 focus:ring-${colorScheme.primary}-500 ${
-                        isInsufficientBalance() ? 'border-red-500 bg-red-50' : ''
-                      }`}
+                      className={`input-field pl-10 text-lg font-semibold border-${colorScheme.primary}-300 focus:border-${colorScheme.primary}-500 focus:ring-${colorScheme.primary}-500 ${isInsufficientBalance() ? 'border-red-500 bg-red-50' : ''
+                        }`}
                       placeholder="0.00"
                       minValue={0.01}
                       maxValue={99999999.99}
                     />
                     {/* Hidden input for form validation */}
                     <input
-                      {...register('amount', { 
+                      {...register('amount', {
                         required: 'Amount is required',
                         min: { value: 0.01, message: 'Amount must be greater than 0' }
                       })}
@@ -490,7 +482,7 @@ const CombinedTransactionForm: React.FC = () => {
               className="p-6 rounded-xl border-2 shadow-lg bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-300"
             >
               <h4 className="text-lg font-semibold text-purple-900 mb-4">Transaction Summary</h4>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Main Transaction Summary */}
                 <div className={`p-4 rounded-lg bg-${colorScheme.primary}-50 border border-${colorScheme.primary}-200`}>

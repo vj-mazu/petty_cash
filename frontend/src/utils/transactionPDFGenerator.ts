@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { formatIndianCurrency } from './indianNumberFormat';
 
 // Extend jsPDF type
 declare module 'jspdf' {
@@ -173,7 +172,6 @@ export const generateTransactionPDF = (
         fillColor: [230, 236, 245],
         textColor: [30, 30, 30],
         fontStyle: 'bold',
-        halign: 'center',
         fontSize: 7,
         cellPadding: 2
       },

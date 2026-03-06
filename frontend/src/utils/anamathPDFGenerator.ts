@@ -145,7 +145,6 @@ export const generateAnamathPDF = (
         fillColor: [230, 236, 245],
         textColor: [30, 30, 30],
         fontStyle: 'bold',
-        halign: 'center',
         fontSize: 7,
         cellPadding: 2
       },
@@ -245,7 +244,6 @@ export const generateClosedAnamathPDF = async (
         fillColor: [230, 236, 245],
         textColor: [30, 30, 30],
         fontStyle: 'bold',
-        halign: 'center',
         fontSize: 7,
         cellPadding: 2.5
       },
@@ -255,7 +253,7 @@ export const generateClosedAnamathPDF = async (
         2: { halign: 'center', cellWidth: 22 },
         3: { halign: 'center', cellWidth: 14 },
         4: { halign: 'left', cellWidth: 35 },
-        5: { halign: 'right', cellWidth: 25 },
+        5: { halign: 'left', cellWidth: 25 },
         6: { halign: 'left' }
       },
       alternateRowStyles: { fillColor: [250, 250, 255] },

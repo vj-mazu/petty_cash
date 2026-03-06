@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { 
-  Search, 
-  RefreshCw, 
-  TrendingUp, 
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Search,
+  RefreshCw,
+  TrendingUp,
   TrendingDown,
   Calendar,
   DollarSign,
@@ -84,62 +84,62 @@ const useDebounce = (value: string, delay: number) => {
 // Ultra-fast API service
 class UltraFastAPI {
   private static baseURL = '/api/ultra-fast';
-  
+
   static async fetchTransactions(params: any) {
     const token = localStorage.getItem('token');
     const queryParams = new URLSearchParams(params);
-    
+
     const response = await fetch(`${this.baseURL}/transactions?${queryParams}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     return response.json();
   }
-  
+
   static async fetchSummary(params: any = {}) {
     const token = localStorage.getItem('token');
     const queryParams = new URLSearchParams(params);
-    
+
     const response = await fetch(`${this.baseURL}/summary?${queryParams}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
-    
+
     return response.json();
   }
-  
+
   static async searchTransactions(query: string) {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${this.baseURL}/search?query=${encodeURIComponent(query)}&limit=20`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
-    
+
     return response.json();
   }
-  
+
   static async fetchLedgers() {
     const token = localStorage.getItem('token');
-    
+
     const response = await fetch(`${this.baseURL}/ledgers`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
-    
+
     return response.json();
   }
 }
@@ -148,7 +148,7 @@ class UltraFastAPI {
 const TransactionRow = React.memo<{ transaction: Transaction; index: number }>(({ transaction, index }) => {
   const transactionType = transaction.creditAmount > 0 ? 'credit' : 'debit';
   const amount = transaction.creditAmount > 0 ? transaction.creditAmount : transaction.debitAmount;
-  
+
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'credit': return 'text-green-600 bg-green-50';
@@ -171,7 +171,7 @@ const TransactionRow = React.memo<{ transaction: Transaction; index: number }>((
         <div className={`p-2 rounded-lg ${getTypeColor(transactionType)}`}>
           {getTypeIcon(transactionType)}
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-900 truncate">
@@ -181,11 +181,11 @@ const TransactionRow = React.memo<{ transaction: Transaction; index: number }>((
               #{transaction.transaction_number || transaction.id.slice(0, 8)}
             </span>
           </div>
-          
+
           <p className="text-sm text-gray-500 truncate mt-1">
             {transaction.description || transaction.remarks || 'No description'}
           </p>
-          
+
           <div className="flex items-center space-x-4 mt-2">
             <span className="text-xs text-gray-400 flex items-center">
               <Calendar className="w-3 h-3 mr-1" />
@@ -194,11 +194,10 @@ const TransactionRow = React.memo<{ transaction: Transaction; index: number }>((
           </div>
         </div>
       </div>
-      
+
       <div className="text-right">
-        <div className={`text-lg font-semibold ${
-          transactionType === 'credit' ? 'text-green-600' : 'text-red-600'
-        }`}>
+        <div className={`text-lg font-semibold ${transactionType === 'credit' ? 'text-green-600' : 'text-red-600'
+          }`}>
           {transactionType === 'credit' ? '+' : '-'}{formatCurrency(amount)}
         </div>
       </div>
@@ -288,57 +287,58 @@ const LightningFastTransactionList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
-  
+
   // Filter and search state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLedger, setSelectedLedger] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  
+
   // Ledgers for filter
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
-  
+
   // Performance state
   const [lastResponseTime, setLastResponseTime] = useState(0);
-  
+
   // Refs
   const abortControllerRef = useRef<AbortController | null>(null);
-  
+
   // Debounced search
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  
-  // Load initial data on mount
+
   useEffect(() => {
-    loadInitialData();
+    fetchTransactions(1, true);
+    fetchSummary();
     loadLedgers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
-  // Handle debounced search
+
   useEffect(() => {
     if (debouncedSearchTerm !== searchTerm) return;
-    resetAndFetch();
+    setPage(1);
+    setTransactions([]);
+    fetchTransactions(1, true);
+    fetchSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchTerm]);
-  
-  // Handle filter changes
+
   useEffect(() => {
-    resetAndFetch();
+    setPage(1);
+    setTransactions([]);
+    fetchTransactions(1, true);
+    fetchSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLedger, selectedType, dateRange]);
-  
-  // Load initial data
-  const loadInitialData = async () => {
-    await Promise.all([
-      fetchTransactions(1, true),
-      fetchSummary()
-    ]);
-  };
-  
+
+
+
   // Load ledgers for filter
   const loadLedgers = async () => {
     try {
@@ -350,49 +350,43 @@ const LightningFastTransactionList: React.FC = () => {
       console.error('Failed to load ledgers:', error);
     }
   };
-  
-  // Reset pagination and fetch
-  const resetAndFetch = () => {
-    setPage(1);
-    setTransactions([]);
-    fetchTransactions(1, true);
-    fetchSummary();
-  };
-  
+
+
+
   // Fetch transactions with optimized parameters
   const fetchTransactions = async (pageNum: number = 1, reset: boolean = false) => {
     // Cancel previous request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const params: any = {
         page: pageNum,
         limit: 50, // Fast loading with small chunks
       };
-      
+
       // Add filters only if they have values
       if (debouncedSearchTerm) params.search = debouncedSearchTerm;
       if (selectedLedger) params.ledgerId = selectedLedger;
       if (selectedType) params.type = selectedType;
       if (dateRange.start) params.startDate = dateRange.start;
       if (dateRange.end) params.endDate = dateRange.end;
-      
+
       const response = await UltraFastAPI.fetchTransactions(params);
-      
+
       if (response.success) {
         const newTransactions = response.data;
-        
+
         if (reset || pageNum === 1) {
           setTransactions(newTransactions);
         } else {
           setTransactions(prev => [...prev, ...newTransactions]);
         }
-        
+
         setTotalPages(response.pagination.totalPages);
         setTotalRecords(response.pagination.totalRecords);
         setHasMore(response.pagination.hasNextPage);
@@ -408,19 +402,19 @@ const LightningFastTransactionList: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
   // Fetch summary
   const fetchSummary = async () => {
     setSummaryLoading(true);
-    
+
     try {
       const params: any = {};
       if (selectedLedger) params.ledgerId = selectedLedger;
       if (dateRange.start) params.startDate = dateRange.start;
       if (dateRange.end) params.endDate = dateRange.end;
-      
+
       const response = await UltraFastAPI.fetchSummary(params);
-      
+
       if (response.success) {
         setSummary(response.data);
       }
@@ -430,24 +424,27 @@ const LightningFastTransactionList: React.FC = () => {
       setSummaryLoading(false);
     }
   };
-  
+
   // Load more transactions
   const loadMore = useCallback(() => {
     if (hasMore && !loading) {
       fetchTransactions(page + 1, false);
     }
   }, [hasMore, loading, page]);
-  
+
   // Refresh all data
   const refresh = useCallback(() => {
-    loadInitialData();
+    setPage(1);
+    setTransactions([]);
+    fetchTransactions(1, true);
+    fetchSummary();
   }, []);
-  
+
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
-  
+
   // Clear all filters
   const clearFilters = () => {
     setSearchTerm('');
@@ -488,12 +485,12 @@ const LightningFastTransactionList: React.FC = () => {
             Optimized for 20,000+ records • Last query: {lastResponseTime}ms
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
             {formatNumber(totalRecords)} Total Records
           </div>
-          
+
           <button
             onClick={refresh}
             disabled={loading}
@@ -520,7 +517,7 @@ const LightningFastTransactionList: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center"
@@ -529,7 +526,7 @@ const LightningFastTransactionList: React.FC = () => {
             Filters
             <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
           </button>
-          
+
           <button
             onClick={clearFilters}
             className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg"
@@ -537,7 +534,7 @@ const LightningFastTransactionList: React.FC = () => {
             Clear
           </button>
         </div>
-        
+
         {/* Advanced Filters */}
         {showFilters && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
@@ -556,7 +553,7 @@ const LightningFastTransactionList: React.FC = () => {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
               <select
@@ -569,7 +566,7 @@ const LightningFastTransactionList: React.FC = () => {
                 <option value="debit">Debit</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
               <input
@@ -579,7 +576,7 @@ const LightningFastTransactionList: React.FC = () => {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
               <input
@@ -600,7 +597,7 @@ const LightningFastTransactionList: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Transactions ({formatNumber(transactions.length)} of {formatNumber(totalRecords)})
             </h2>
-            
+
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <span>Page {page} of {totalPages}</span>
               {loading && <Loader className="w-4 h-4 animate-spin" />}
@@ -617,7 +614,7 @@ const LightningFastTransactionList: React.FC = () => {
               index={index}
             />
           ))}
-          
+
           {transactions.length === 0 && !loading && (
             <div className="p-8 text-center text-gray-500">
               <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -625,7 +622,7 @@ const LightningFastTransactionList: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         {/* Load More Button */}
         {hasMore && (
           <div className="p-4 text-center border-t border-gray-200">
@@ -645,7 +642,7 @@ const LightningFastTransactionList: React.FC = () => {
             </button>
           </div>
         )}
-        
+
         {/* End indicator */}
         {!hasMore && transactions.length > 0 && (
           <div className="p-4 text-center text-gray-500 border-t border-gray-200">

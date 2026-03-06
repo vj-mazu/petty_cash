@@ -13,7 +13,6 @@ import {
   Menu,
   X,
   Bell,
-  Search,
   User,
   ChevronDown,
   Calculator,

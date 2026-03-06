@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { ledgerApi } from '../services/api';
-import { ArrowLeft, Save, BookOpen, FileText } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { toTitleCase } from '../utils/textUtils';
 

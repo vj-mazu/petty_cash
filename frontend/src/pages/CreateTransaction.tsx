@@ -33,12 +33,12 @@ interface CreateTransactionProps {
   type?: TransactionType;
 }
 
-const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
+const CreateTransaction: React.FC<CreateTransactionProps> = ({ type: propType }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [loadingLedgers, setLoadingLedgers] = useState(true);
-  const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(null);
+
   const [isFormSubmitting, setIsFormSubmitting] = useState<boolean>(false);
   const [nextTransactionNumber, setNextTransactionNumber] = useState<number | null>(null);
   const [loadingTransactionNumber, setLoadingTransactionNumber] = useState(true);
@@ -98,7 +98,6 @@ const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
       saveOption: 'single'
     });
     setDisplayAmount('0');
-    setSelectedLedger(null);
     clearErrors();
   };
 
@@ -121,13 +120,6 @@ const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
     // Always fetch anamath ID for combined save functionality
     fetchNextAnamathId();
   }, [transactionType]);
-
-  useEffect(() => {
-    if (watchedLedgerId) {
-      const ledger = ledgers.find(l => l.id === watchedLedgerId);
-      setSelectedLedger(ledger || null);
-    }
-  }, [watchedLedgerId, ledgers]);
 
   const fetchLedgers = async () => {
     try {
@@ -302,10 +294,9 @@ const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
         }
       } else if (transactionType === 'anamath') {
         const response = await handleAnamath(formData);
-        if (response?.success) {
+        if (response && response.success) {
           await fetchNextAnamathId();
           toast.success('Anamath entry saved successfully! Ready for next entry.');
-          // STAY ON SAME PAGE - Reset form for next entry
           resetForm();
         }
       } else {
@@ -327,7 +318,18 @@ const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
     }
   };
 
-  const onSubmit = (data: CreateTransactionForm, saveOption: 'single' | 'withAnamath' = 'single') => {
+  const onSubmit = (data: CreateTransactionForm, saveOptionOrEvent?: 'single' | 'withAnamath' | React.BaseSyntheticEvent) => {
+    let saveOption: 'single' | 'withAnamath' = 'single';
+
+    if (typeof saveOptionOrEvent === 'string') {
+      saveOption = saveOptionOrEvent;
+    } else if (saveOptionOrEvent && saveOptionOrEvent.nativeEvent instanceof SubmitEvent) {
+      const submitter = (saveOptionOrEvent.nativeEvent as any).submitter as HTMLButtonElement | null;
+      if (submitter?.name === 'withAnamath') {
+        saveOption = 'withAnamath';
+      }
+    }
+
     handleFormSubmit(data, saveOption);
   };
 
@@ -367,7 +369,7 @@ const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
         animate={{ opacity: 1, y: 0 }}
         className="card p-4"
       >
-        <form onSubmit={handleSubmit(data => onSubmit(data, 'single'))} className="space-y-4">
+        <form onSubmit={handleSubmit((data, e) => onSubmit(data, e))} className="space-y-4">
           {/* Transaction Type Display */}
           <div className={`p-3 rounded-lg border ${transactionType === 'credit' ? 'bg-emerald-50 border-emerald-200' :
             transactionType === 'debit' ? 'bg-red-50 border-red-200' :
@@ -616,7 +618,7 @@ const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
-                    onClick={handleSubmit(data => onSubmit(data, 'withAnamath'))}
+                    onClick={() => handleSubmit(data => onSubmit(data, 'withAnamath'))()}
                     disabled={isFormSubmitting}
                     className={`flex-1 flex items-center justify-center py-1.5 px-3 border border-transparent rounded text-xs font-medium text-white ${isFormSubmitting
                       ? 'bg-indigo-400'
@@ -641,7 +643,7 @@ const CreateTransaction = ({ type: propType }: CreateTransactionProps) => {
               </button>
               <button
                 type="button"
-                onClick={handleSubmit(data => onSubmit(data, 'single'))}
+                onClick={() => handleSubmit(data => onSubmit(data, 'single'))()}
                 disabled={isFormSubmitting}
                 className={`px-4 py-1.5 border border-transparent rounded text-xs font-medium text-white ${isFormSubmitting
                   ? 'bg-indigo-400'

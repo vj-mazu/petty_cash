@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Download, Plus, BookOpen, Trash2, Archive, Edit, Check, Search, Filter, RefreshCw } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { toast } from 'react-toastify';
@@ -23,8 +22,6 @@ const Anamath: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loadingLedgers, setLoadingLedgers] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState<boolean>(false);
@@ -44,7 +41,6 @@ const Anamath: React.FC = () => {
   // Fetch ledgers
   const fetchLedgers = useCallback(async () => {
     try {
-      setLoadingLedgers(true);
       const response = await ledgerApi.getAll({ limit: 100 });
       if (response.success) {
         setLedgers(response.data.ledgers);
@@ -52,8 +48,6 @@ const Anamath: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch ledgers:', error);
       toast.error('Failed to load ledgers');
-    } finally {
-      setLoadingLedgers(false);
     }
   }, []);
 
@@ -107,7 +101,7 @@ const Anamath: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage]);
 
   // Filter records based on search criteria
   const filterRecords = useCallback(() => {

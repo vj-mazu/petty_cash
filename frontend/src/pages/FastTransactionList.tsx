@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, memo, useRef } from 'react';
-import { 
-  Search, 
-  RefreshCw, 
-  TrendingUp, 
+import {
+  Search,
+  RefreshCw,
+  TrendingUp,
   TrendingDown,
   Calendar,
   DollarSign,
@@ -62,19 +62,18 @@ const formatNumber = (num: number) => {
 const TransactionRow = memo<{ transaction: Transaction; index: number }>(({ transaction, index }) => {
   const transactionType = transaction.creditAmount > 0 ? 'credit' : 'debit';
   const amount = transaction.creditAmount > 0 ? transaction.creditAmount : transaction.debitAmount;
-  
+
   return (
     <div className="flex items-center justify-between p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
       <div className="flex items-center space-x-3 flex-1">
-        <div className={`p-1.5 rounded-lg ${
-          transactionType === 'credit' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'
-        }`}>
-          {transactionType === 'credit' ? 
-            <TrendingUp className="w-3 h-3" /> : 
+        <div className={`p-1.5 rounded-lg ${transactionType === 'credit' ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'
+          }`}>
+          {transactionType === 'credit' ?
+            <TrendingUp className="w-3 h-3" /> :
             <TrendingDown className="w-3 h-3" />
           }
         </div>
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-900 truncate">
@@ -84,22 +83,21 @@ const TransactionRow = memo<{ transaction: Transaction; index: number }>(({ tran
               #{transaction.transaction_number || transaction.id.slice(0, 6)}
             </span>
           </div>
-          
+
           <p className="text-xs text-gray-500 truncate">
             {transaction.description || transaction.remarks || 'No description'}
           </p>
-          
+
           <span className="text-xs text-gray-400 flex items-center mt-1">
             <Calendar className="w-2.5 h-2.5 mr-1" />
             {formatDate(transaction.date)}
           </span>
         </div>
       </div>
-      
+
       <div className="text-right">
-        <div className={`text-sm font-semibold ${
-          transactionType === 'credit' ? 'text-green-600' : 'text-red-600'
-        }`}>
+        <div className={`text-sm font-semibold ${transactionType === 'credit' ? 'text-green-600' : 'text-red-600'
+          }`}>
           {transactionType === 'credit' ? '+' : '-'}{formatCurrency(amount)}
         </div>
       </div>
@@ -208,14 +206,13 @@ const FastTransactionList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [responseTime, setResponseTime] = useState(0);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [showPerformanceStats, setShowPerformanceStats] = useState(true);
-  
+
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -224,7 +221,7 @@ const FastTransactionList: React.FC = () => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     searchTimeoutRef.current = setTimeout(() => {
       setSearchTerm(term);
       setPage(1);
@@ -238,9 +235,9 @@ const FastTransactionList: React.FC = () => {
     if (pageNum === 1) setInitialLoading(true);
     setLoading(true);
     setError(null);
-    
+
     const startTime = performance.now();
-    
+
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams({
@@ -263,24 +260,23 @@ const FastTransactionList: React.FC = () => {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         if (append) {
           setTransactions(prev => [...prev, ...(data.data || [])]);
         } else {
           setTransactions(data.data || []);
         }
-        setTotalPages(data.pagination?.totalPages || 0);
         setTotalRecords(data.pagination?.totalRecords || 0);
         setHasNextPage(data.pagination?.hasNextPage || false);
         setPage(pageNum);
       } else {
         throw new Error(data.message || 'Failed to fetch transactions');
       }
-      
+
       const endTime = performance.now();
       setResponseTime(Math.round(endTime - startTime));
-      
+
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setError((error as Error).message);
@@ -293,7 +289,7 @@ const FastTransactionList: React.FC = () => {
   // Fetch summary
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
-    
+
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/transactions/summary', {
@@ -336,6 +332,7 @@ const FastTransactionList: React.FC = () => {
   useEffect(() => {
     fetchTransactions();
     fetchSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Infinite scroll detection
@@ -397,7 +394,7 @@ const FastTransactionList: React.FC = () => {
             Loading 22,000+ records in under 2 seconds
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setShowPerformanceStats(!showPerformanceStats)}
@@ -405,7 +402,7 @@ const FastTransactionList: React.FC = () => {
           >
             {showPerformanceStats ? 'Hide' : 'Show'} Stats
           </button>
-          
+
           <button
             onClick={refresh}
             disabled={loading}
@@ -418,10 +415,10 @@ const FastTransactionList: React.FC = () => {
 
       {/* Performance Stats */}
       {showPerformanceStats && (
-        <PerformanceStats 
-          responseTime={responseTime} 
-          recordCount={transactions.length} 
-          totalRecords={totalRecords} 
+        <PerformanceStats
+          responseTime={responseTime}
+          recordCount={transactions.length}
+          totalRecords={totalRecords}
         />
       )}
 
@@ -448,7 +445,7 @@ const FastTransactionList: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Transactions
             </h2>
-            
+
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               {loading && (
                 <div className="flex items-center">
@@ -468,7 +465,7 @@ const FastTransactionList: React.FC = () => {
         ) : (
           <>
             {/* Scrollable container */}
-            <div 
+            <div
               ref={containerRef}
               className="max-h-96 overflow-y-auto"
               style={{ height: '500px' }}
@@ -480,7 +477,7 @@ const FastTransactionList: React.FC = () => {
                   index={index}
                 />
               ))}
-              
+
               {/* Load more indicator */}
               {loading && (
                 <div className="flex items-center justify-center py-4">
@@ -489,7 +486,7 @@ const FastTransactionList: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Load More Button */}
             {hasNextPage && !loading && (
               <div className="p-4 text-center border-t border-gray-200">
@@ -502,7 +499,7 @@ const FastTransactionList: React.FC = () => {
                 </button>
               </div>
             )}
-            
+
             {/* End of data indicator */}
             {!hasNextPage && transactions.length > 0 && (
               <div className="p-4 text-center text-gray-500 border-t border-gray-200">

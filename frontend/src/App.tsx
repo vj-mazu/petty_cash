@@ -24,7 +24,7 @@ import CreateTransaction from './pages/CreateTransaction';
 import CreateAnamath from './pages/CreateAnamath';
 import ClosedAnamathRecords from './pages/ClosedAnamathRecords';
 
-import { CreditTransactionForm, DebitTransactionForm, CombinedTransactionForm } from './components/transactions';
+import { CombinedTransactionForm } from './components/transactions';
 import TransactionFilters from './pages/TransactionFilters';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
@@ -90,8 +90,8 @@ function AppWithShortcuts() {
           <Route path="transactions/lightning" element={<LightningFastTransactionList />} />
           <Route path="transactions/with-running-balance" element={<TransactionsWithRunningBalance />} />
           <Route path="transactions/create" element={<TransactionTypeSelection />} />
-          <Route path="transactions/create/credit" element={<CreateTransaction type="credit" />} />
-          <Route path="transactions/create/debit" element={<CreateTransaction type="debit" />} />
+          <Route path="transactions/create/credit" element={<CreateTransaction />} />
+          <Route path="transactions/create/debit" element={<CreateTransaction />} />
           <Route path="transactions/create/anamath" element={<CreateAnamath />} />
           <Route path="transactions/create/combined" element={<CombinedTransactionForm />} />
           <Route path="transactions/filters" element={<TransactionFilters />} />

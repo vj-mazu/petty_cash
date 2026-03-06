@@ -27,9 +27,9 @@ const EditAnamath: React.FC = () => {
   // Get record ID from URL params
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   console.log('🎯 BULLETPROOF EditAnamath - Component mounted with ID:', id);
-  
+
   // Component state
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -71,7 +71,7 @@ const EditAnamath: React.FC = () => {
     };
 
     const scenarioData = scenarios[scenario as keyof typeof scenarios] || scenarios.default;
-    
+
     return {
       id: recordId || 'demo-id-' + Date.now(),
       amount: scenarioData.amount,
@@ -103,7 +103,7 @@ const EditAnamath: React.FC = () => {
     setValue('amount', recordData.amount || 0);
     setValue('date', format(new Date(recordData.date), 'yyyy-MM-dd'));
     setValue('remarks', recordData.remarks || '');
-    
+
     console.log('📝 Form populated with data:', {
       ledgerId: recordData.ledgerId || recordData.ledger_id,
       amount: recordData.amount,
@@ -115,7 +115,7 @@ const EditAnamath: React.FC = () => {
   // Function to fetch the record data - SIMPLIFIED FOR REAL DATA
   const fetchRecord = async () => {
     console.log('🔄 fetchRecord called with ID:', id);
-    
+
     // Handle missing ID
     if (!id) {
       console.error('❌ No record ID provided');
@@ -140,11 +140,11 @@ const EditAnamath: React.FC = () => {
 
     try {
       console.log('🌐 Making DIRECT API call to fetch Anamath record with ID:', id);
-      
+
       // First try the direct API approach
       const directResponse = await directApi.getAnamathById(id);
       console.log('📡 Direct API response:', directResponse);
-      
+
       if (directResponse.success && directResponse.data) {
         const recordData = directResponse.data;
         console.log('✅ SUCCESS! Real record data received via DIRECT API:', recordData);
@@ -155,12 +155,12 @@ const EditAnamath: React.FC = () => {
         toast.success('Real record loaded successfully!');
         return; // Exit function on success
       }
-      
+
       // Fallback to regular API
       console.log('🔄 Trying regular anamathApi as fallback...');
       const response = await anamathApi.getById(id);
       console.log('📡 Regular API response:', response);
-      
+
       if (response && response.success && response.data) {
         const recordData = response.data;
         console.log('✅ SUCCESS! Real record data received via regular API:', recordData);
@@ -171,9 +171,9 @@ const EditAnamath: React.FC = () => {
         toast.success('Real record loaded successfully!');
         return;
       }
-      
+
       throw new Error(directResponse?.message || response?.message || 'No data returned from server');
-      
+
     } catch (err: any) {
       console.error('🚨 API call failed - ERROR DETAILS:', {
         message: err.message,
@@ -182,7 +182,7 @@ const EditAnamath: React.FC = () => {
         responseData: err.response?.data,
         fullError: err
       });
-      
+
       // Show specific error but still load mock data for testing
       let errorMsg = 'Failed to load real data';
       if (err.response?.status === 401) {
@@ -194,7 +194,7 @@ const EditAnamath: React.FC = () => {
       } else if (!err.response) {
         errorMsg = 'Network connection failed';
       }
-      
+
       const mockData = createMockData(id, 'server-offline');
       loadMockData(mockData, `${errorMsg}. Showing test data.`);
     } finally {
@@ -207,7 +207,7 @@ const EditAnamath: React.FC = () => {
     try {
       console.log('📋 Fetching ledgers...');
       const response = await ledgerApi.getAll({ limit: 100 });
-      
+
       if (response.success && response.data && response.data.ledgers) {
         setLedgers(response.data.ledgers);
         console.log('✅ Ledgers loaded:', response.data.ledgers.length);
@@ -230,22 +230,23 @@ const EditAnamath: React.FC = () => {
   // Load data on component mount
   useEffect(() => {
     console.log('🚀 EditAnamath useEffect triggered');
-    
+
     // Load ledgers first (non-blocking)
     fetchLedgers();
-    
+
     // Then load the record
     fetchRecord();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Handle form submission with bulletproof error handling
   const onSubmit = async (data: AnamathFormData) => {
     console.log('💾 Form submission started with data:', data);
-    
+
     // Check if token exists
     const token = localStorage.getItem('token');
     console.log('🔑 Token check:', token ? 'Token exists' : 'NO TOKEN FOUND!');
-    
+
     if (!token) {
       toast.error('You are not logged in. Please login again.');
       console.error('❌ No authentication token found!');
@@ -254,7 +255,7 @@ const EditAnamath: React.FC = () => {
       }, 2000);
       return;
     }
-    
+
     if (!id) {
       console.error('❌ Cannot submit without record ID');
       toast.error('Cannot save record without valid ID');
@@ -280,14 +281,14 @@ const EditAnamath: React.FC = () => {
         // Demo mode - simulate save
         console.log('🎭 Demo mode save simulation');
         await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
-        
+
         toast.update(submitToast, {
           render: 'Demo save completed! (Server is offline)',
           type: 'success',
           isLoading: false,
           autoClose: 3000
         });
-        
+
         // Update local record
         const updatedRecord = {
           ...record,
@@ -295,7 +296,7 @@ const EditAnamath: React.FC = () => {
           updatedAt: new Date().toISOString()
         };
         setRecord(updatedRecord);
-        
+
         console.log('✅ Demo save successful');
         return;
       }
@@ -303,19 +304,19 @@ const EditAnamath: React.FC = () => {
       // Real API call - Try direct API first
       console.log('🌐 Making DIRECT API call to update record');
       console.log('📤 Form data received:', data);
-      
+
       const updateData = {
         amount: Number(data.amount),
         date: data.date, // Should already be in YYYY-MM-DD format from date input
         ledgerId: data.ledgerId && data.ledgerId !== '' ? data.ledgerId : undefined,
         remarks: data.remarks && data.remarks !== '' ? data.remarks : undefined
       };
-      
+
       console.log('📤 Update data being sent:', JSON.stringify(updateData, null, 2));
-      
+
       const directResponse = await directApi.updateAnamathById(id, updateData);
       console.log('📡 Direct API update response:', directResponse);
-      
+
       if (directResponse.success) {
         toast.update(submitToast, {
           render: 'Record updated successfully with REAL DATA!',
@@ -323,16 +324,16 @@ const EditAnamath: React.FC = () => {
           isLoading: false,
           autoClose: 3000
         });
-        
+
         console.log('✅ Record updated successfully via DIRECT API');
-        
+
         // Navigate back after success
         setTimeout(() => {
           navigate('/anamath');
         }, 2000);
         return;
       }
-      
+
       // Fallback to regular API
       console.log('🔄 Trying regular anamathApi as fallback for update...');
       const response = await anamathApi.update(id, updateData);
@@ -344,9 +345,9 @@ const EditAnamath: React.FC = () => {
           isLoading: false,
           autoClose: 3000
         });
-        
+
         console.log('✅ Record updated successfully via regular API');
-        
+
         // Navigate back after success
         setTimeout(() => {
           navigate('/anamath');
@@ -362,7 +363,7 @@ const EditAnamath: React.FC = () => {
         data: err.response?.data,
         fullError: err
       });
-      
+
       // Show specific error message
       let errorMessage = 'API save failed.';
       if (err.response?.data?.message) {
@@ -374,16 +375,16 @@ const EditAnamath: React.FC = () => {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       console.error('❌ ERROR MESSAGE:', errorMessage);
-      
+
       toast.update(submitToast, {
         render: `${errorMessage} - Saved locally for demo.`,
         type: 'warning',
         isLoading: false,
         autoClose: 5000
       });
-      
+
       // Update local record for demo
       const updatedRecord = {
         ...record,
@@ -391,7 +392,7 @@ const EditAnamath: React.FC = () => {
         updatedAt: new Date().toISOString()
       };
       setRecord(updatedRecord);
-      
+
       console.log('⚠️ API save failed, but local demo save completed');
     } finally {
       setSubmitting(false);
@@ -564,7 +565,7 @@ const EditAnamath: React.FC = () => {
           <div className="mt-6 p-4 bg-yellow-500 bg-opacity-20 border border-yellow-400 rounded-lg">
             <h3 className="text-yellow-100 font-semibold mb-2">🎭 Demo Mode Active</h3>
             <p className="text-yellow-200 text-sm">
-              The server appears to be offline or the record ID is invalid. All changes are being made locally for demonstration purposes. 
+              The server appears to be offline or the record ID is invalid. All changes are being made locally for demonstration purposes.
               When the server comes back online, you can try editing real records.
             </p>
           </div>

@@ -9,7 +9,7 @@ import {
   ArrowLeft,
   Plus
 } from 'lucide-react';
-import { transactionApi, ledgerApi, openingBalanceApi } from '../services/api';
+import { transactionApi, openingBalanceApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -284,8 +284,8 @@ const TransactionsWithRunningBalance: React.FC = () => {
                 key={page}
                 onClick={() => handlePageChange(page)}
                 className={`px-3 py-1 rounded-md transition-colors ${currentPage === page
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
               >
                 {page}

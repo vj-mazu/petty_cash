@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { transactionApi, ledgerApi, Ledger, CreateTransactionData } from '../../services/api';
-import { formatIndianCurrency, formatDisplayAmount } from '../../utils/indianNumberFormat';
+import { formatIndianCurrency } from '../../utils/indianNumberFormat';
 import {
   ArrowLeft,
   Save,
   BookOpen,
-  TrendingUp,
-  Plus,
-  Calculator
+  TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
@@ -31,7 +29,7 @@ const CreditTransactionForm: React.FC = () => {
   const [loadingLedgers, setLoadingLedgers] = useState(true);
   const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(null);
   const { updateAfterTransaction } = useOpeningBalanceContext();
-  
+
   const {
     register,
     handleSubmit,
@@ -44,7 +42,7 @@ const CreditTransactionForm: React.FC = () => {
       reference: ''
     }
   });
-  
+
   const watchedLedgerId = watch('ledgerId');
   const watchedAmount = watch('amount') || 0;
 
@@ -121,7 +119,7 @@ const CreditTransactionForm: React.FC = () => {
         toast.success(
           `Credit transaction of ${formatIndianCurrency(formData.amount)} added successfully!`
         );
-        
+
         console.log('Navigating to transactions page');
         navigate('/transactions');
       } else {
@@ -233,7 +231,7 @@ const CreditTransactionForm: React.FC = () => {
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-600 text-lg font-bold">₹</span>
               <input
-                {...register('amount', { 
+                {...register('amount', {
                   required: 'Amount is required',
                   min: { value: 0.01, message: 'Amount must be greater than 0' }
                 })}

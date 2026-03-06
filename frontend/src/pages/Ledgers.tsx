@@ -3,16 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import { ledgerApi, Ledger } from '../services/api';
 import {
   Plus,
   Search,
   Trash2,
-  Filter,
   BookOpen
 } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
 

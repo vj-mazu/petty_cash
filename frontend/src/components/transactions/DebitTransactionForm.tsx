@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { transactionApi, ledgerApi, Ledger, CreateTransactionData } from '../../services/api';
-import { formatIndianCurrency, formatDisplayAmount } from '../../utils/indianNumberFormat';
+import { formatIndianCurrency } from '../../utils/indianNumberFormat';
 import {
   ArrowLeft,
   Save,
   BookOpen,
   TrendingDown,
-  AlertTriangle,
-  Calculator
+  AlertTriangle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
@@ -29,7 +28,7 @@ const DebitTransactionForm: React.FC = () => {
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [loadingLedgers, setLoadingLedgers] = useState(true);
   const [selectedLedger, setSelectedLedger] = useState<Ledger | null>(null);
-  
+
   const {
     register,
     handleSubmit,
@@ -42,7 +41,7 @@ const DebitTransactionForm: React.FC = () => {
       reference: ''
     }
   });
-  
+
   const watchedLedgerId = watch('ledgerId');
   const watchedAmount = watch('amount') || 0;
 
@@ -118,7 +117,7 @@ const DebitTransactionForm: React.FC = () => {
         toast.success(
           `Debit transaction of ${formatIndianCurrency(formData.amount)} added successfully!`
         );
-        
+
         console.log('Navigating to transactions page');
         navigate('/transactions');
       } else {
@@ -217,9 +216,8 @@ const DebitTransactionForm: React.FC = () => {
                     <div className="text-xs text-red-600">Available Balance</div>
                   </div>
                   <div className="text-right">
-                    <div className={`text-lg font-bold ${
-                      selectedLedger.currentBalance >= 0 ? 'text-red-700' : 'text-red-800'
-                    }`}>
+                    <div className={`text-lg font-bold ${selectedLedger.currentBalance >= 0 ? 'text-red-700' : 'text-red-800'
+                      }`}>
                       {formatCurrency(selectedLedger.currentBalance)}
                     </div>
                   </div>
@@ -236,16 +234,15 @@ const DebitTransactionForm: React.FC = () => {
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-red-600 text-lg font-bold">₹</span>
               <input
-                {...register('amount', { 
+                {...register('amount', {
                   required: 'Amount is required',
                   min: { value: 0.01, message: 'Amount must be greater than 0' }
                 })}
                 type="number"
                 step="0.01"
                 min="0.01"
-                className={`input-field w-full pl-12 py-4 text-2xl font-semibold border-red-300 focus:border-red-500 focus:ring-red-500 ${
-                  isInsufficientBalance() ? 'border-red-500 bg-red-50' : ''
-                }`}
+                className={`input-field w-full pl-12 py-4 text-2xl font-semibold border-red-300 focus:border-red-500 focus:ring-red-500 ${isInsufficientBalance() ? 'border-red-500 bg-red-50' : ''
+                  }`}
                 placeholder="0.00"
               />
             </div>
@@ -308,17 +305,15 @@ const DebitTransactionForm: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`p-4 rounded-xl border-2 shadow-lg ${
-                isInsufficientBalance() 
+              className={`p-4 rounded-xl border-2 shadow-lg ${isInsufficientBalance()
                   ? 'bg-gradient-to-r from-red-100 to-red-200 border-red-400'
                   : 'bg-gradient-to-r from-orange-100 to-yellow-100 border-orange-400'
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className={`text-sm font-bold ${
-                    isInsufficientBalance() ? 'text-red-800' : 'text-orange-800'
-                  }`}>
+                  <div className={`text-sm font-bold ${isInsufficientBalance() ? 'text-red-800' : 'text-orange-800'
+                    }`}>
                     After this debit transaction
                   </div>
                   {isInsufficientBalance() && (
@@ -328,9 +323,8 @@ const DebitTransactionForm: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <div className={`text-right ${
-                  isInsufficientBalance() ? 'text-red-900' : 'text-orange-900'
-                }`}>
+                <div className={`text-right ${isInsufficientBalance() ? 'text-red-900' : 'text-orange-900'
+                  }`}>
                   <div className="text-xl font-bold">
                     {formatCurrency(calculateNewBalance(selectedLedger.currentBalance, watchedAmount))}
                   </div>
@@ -340,9 +334,8 @@ const DebitTransactionForm: React.FC = () => {
                 </div>
               </div>
               <div className="mt-2">
-                <div className={`text-sm font-medium ${
-                  isInsufficientBalance() ? 'text-red-600' : 'text-orange-600'
-                }`}>
+                <div className={`text-sm font-medium ${isInsufficientBalance() ? 'text-red-600' : 'text-orange-600'
+                  }`}>
                   -{formatCurrency(watchedAmount)}
                 </div>
               </div>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { BookOpen, ArrowLeft } from 'lucide-react';
 import { ledgerApi, Ledger } from '../services/api';
 import { toast } from 'react-toastify';

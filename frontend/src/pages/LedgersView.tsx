@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
-import { FileText, FileDown, Building2, TrendingUp, TrendingDown, Filter, X } from 'lucide-react';
+import { FileText, FileDown, Building2, Filter, X } from 'lucide-react';
 import { ledgerApi } from '../services/api';
 import { formatIndianCurrency } from '../utils/indianNumberFormat';
 import LoadingSpinner from '../components/LoadingSpinner';

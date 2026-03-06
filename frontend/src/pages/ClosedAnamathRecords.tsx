@@ -74,7 +74,7 @@ const ClosedAnamathRecords: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     fetchLedgers();
