@@ -51,9 +51,14 @@ app.use(helmet({
 }));
 
 // Optimized CORS configuration
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
-  : ['http://localhost:3000', 'http://localhost:3001'];
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://petty-cash-one.vercel.app',
+  ...(process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
+    : [])
+];
 
 app.use(cors({
   origin: function (origin, callback) {
